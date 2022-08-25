@@ -1,3 +1,5 @@
+//! Low-level rust bindings to libsais.
+
 pub mod errors;
 
 #[cfg(feature = "sais16")]

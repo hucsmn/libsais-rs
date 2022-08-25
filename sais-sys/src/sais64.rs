@@ -1,3 +1,5 @@
+//! 64-bit sais algorithms on u8 array inputs.
+
 use std::ptr::null_mut;
 
 extern "C" {
@@ -47,10 +49,13 @@ extern "C" {
     fn libsais64_lcp_omp(plcp: *const i64, sa: *const i64, lcp: *mut i64, n: i64, threads: i64) -> i64;
 }
 
+/// Interpreted error code for 64-bit sais algorithms.
 pub type Error = crate::errors::Error<i64>;
 
+/// Interpreted return value for 64-bit sais algorithms.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Output symbol frequency table for u8 strings.
 pub type FreqTable = [i64; 256];
 
 pub fn sais(t: &[u8], sa: &mut [i64], freq: Option<&mut FreqTable>) -> Result<()> {
@@ -147,6 +152,8 @@ pub fn lcp(plcp: &[i64], sa: &[i64], lcp: &mut [i64]) -> Result<()> {
 
 #[cfg(feature = "openmp")]
 pub mod openmp {
+    //! Multi-threaded 64-bit sais algorithms on u8 array inputs.
+
     use super::*;
 
     pub fn sais(t: &[u8], sa: &mut [i64], freq: Option<&mut FreqTable>, threads: i64) -> Result<()> {

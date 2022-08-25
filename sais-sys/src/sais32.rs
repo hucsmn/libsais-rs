@@ -1,3 +1,5 @@
+//! 32-bit sais algorithms on u8 array inputs.
+
 use std::ptr::{NonNull, null_mut};
 
 use libc::c_void;
@@ -88,15 +90,20 @@ extern "C" {
     fn libsais_lcp_omp(plcp: *const i32, sa: *const i32, lcp: *mut i32, n: i32, threads: i32) -> i32;
 }
 
+/// Interpreted error code for 32-bit sais algorithms.
 pub type Error = crate::errors::Error<i32>;
 
+/// Interpreted return value for 32-bit sais algorithms.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Output symbol frequency table for u8 strings.
 pub type FreqTable = [i32; 256];
 
+/// Reusable sais/bwt computation context for 32-bit sais algorithms.
 pub struct SaisContext(NonNull<c_void>);
 
 impl SaisContext {
+    /// Create new single-threaded sais/bwt computation context.
     pub fn new() -> Option<Self> {
         unsafe {
             let ctx_ptr = libsais_create_ctx();
@@ -104,6 +111,7 @@ impl SaisContext {
         }
     }
 
+    /// Create new multi-threaded sais/bwt computation context.
     #[cfg(feature = "openmp")]
     pub fn new_parallel(threads: i32) -> Option<Self> {
         unsafe {
@@ -161,9 +169,11 @@ impl Drop for SaisContext {
     }
 }
 
+/// Reusable unbwt computation context for 32-bit sais algorithms.
 pub struct UnbwtContext(NonNull<c_void>);
 
 impl UnbwtContext {
+    /// Create new single-threaded unbwt computation context.
     pub fn new() -> Option<Self> {
         unsafe {
             let ctx_ptr = libsais_unbwt_create_ctx();
@@ -171,6 +181,7 @@ impl UnbwtContext {
         }
     }
 
+    /// Create new multi-threaded unbwt computation context.
     #[cfg(feature = "openmp")]
     pub fn new_parallel(threads: i32) -> Option<Self> {
         unsafe {
@@ -321,6 +332,8 @@ pub fn lcp(plcp: &[i32], sa: &[i32], lcp: &mut [i32]) -> Result<()> {
 
 #[cfg(feature = "openmp")]
 pub mod openmp {
+    //! Multi-threaded 32-bit sais algorithms on u8 array inputs.
+
     use super::*;
 
     pub fn sais(t: &[u8], sa: &mut [i32], freq: Option<&mut FreqTable>, threads: i32) -> Result<()> {
