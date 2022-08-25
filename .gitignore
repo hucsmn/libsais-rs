@@ -1,0 +1,14 @@
+# cargo
+target/
+Cargo.lock
+
+# editors
+.vscode/
+.fleet/
+.idea/
+*.iml
+
+# others
+.DS_Store
+*.log
+*.tmp

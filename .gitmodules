@@ -1,0 +1,4 @@
+[submodule "libsais"]
+	path = sais-sys/libsais
+	url = https://github.com/IlyaGrebnov/libsais.git
+	branch = master
