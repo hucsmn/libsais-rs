@@ -139,7 +139,7 @@ impl SaisContext {
         }
     }
 
-    pub fn bwt_aux(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<i32> {
+    pub fn bwt_aux(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
@@ -150,7 +150,7 @@ impl SaisContext {
             let i_ptr = i.as_mut_ptr();
 
             let code = libsais16_bwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
-            interpret_code(code)
+            interpret_code(code).map(|_| ())
         }
     }
 }
@@ -246,7 +246,7 @@ pub fn bwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>
     }
 }
 
-pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<i32> {
+pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
@@ -257,7 +257,7 @@ pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTa
         let i_ptr = i.as_mut_ptr();
 
         let code = libsais16_bwt_aux(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
-        interpret_code(code)
+        interpret_code(code).map(|_| ())
     }
 }
 
@@ -344,7 +344,7 @@ pub mod openmp {
         }
     }
 
-    pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32], threads: i32) -> Result<i32> {
+    pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
@@ -355,7 +355,7 @@ pub mod openmp {
             let i_ptr = i.as_mut_ptr();
 
             let code = libsais16_bwt_aux_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr, threads);
-            interpret_code(code)
+            interpret_code(code).map(|_| ())
         }
     }
 

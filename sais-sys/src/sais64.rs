@@ -83,7 +83,7 @@ pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTable>) 
     }
 }
 
-pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTable>, i: &mut [i64]) -> Result<i64> {
+pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTable>, i: &mut [i64]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
@@ -94,7 +94,7 @@ pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTabl
         let i_ptr = i.as_mut_ptr();
 
         let code = libsais64_bwt_aux(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
-        interpret_code(code)
+        interpret_code(code).map(|_| ())
     }
 }
 
@@ -181,7 +181,7 @@ pub mod openmp {
         }
     }
 
-    pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTable>, i: &mut [i64], threads: i64) -> Result<i64> {
+    pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut FreqTable>, i: &mut [i64], threads: i64) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
@@ -192,7 +192,7 @@ pub mod openmp {
             let i_ptr = i.as_mut_ptr();
 
             let code = libsais64_bwt_aux_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr, threads);
-            interpret_code(code)
+            interpret_code(code).map(|_| ())
         }
     }
 
