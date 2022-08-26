@@ -456,22 +456,29 @@ fn length_and_freespace(n: usize, m: usize) -> Result<(i32, i32)> {
 }
 
 fn aux_rate(cap: usize, n: usize) -> Result<i32> {
-    if cap == 0 || n == 0 {
-        Err(Error::IllegalArguments)
-    } else {
-        let mut r = n / cap;
-        if n % cap != 0 {
-            r = n / cap + 1;
-        }
-        if (r & (r - 1)) != 0 {
-            r = r.next_power_of_two();
-        }
-        if r != 0 {
-            r.try_into().map_err(|_| Error::IllegalArguments)
-        } else {
-            Err(Error::IllegalArguments)
-        }
+    if cap == 0 {
+        return Err(Error::IllegalArguments);
     }
+
+    // calculate minimum rate
+    let mut rate = n / cap;
+    if n % cap != 0 {
+        rate = n / cap + 1;
+    }
+    if rate < 2 {
+        return Ok(2);
+    }
+
+    // try to find a minimum power of two rate value
+    if (rate & (rate - 1)) != 0 {
+        rate = rate.next_power_of_two();
+    }
+    if rate == 0 {
+        return Err(Error::IllegalArguments);
+    }
+
+    // convert usize
+    rate.try_into().map_err(|_| Error::IllegalArguments)
 }
 
 fn interpret_code(code: i32) -> Result<i32> {
