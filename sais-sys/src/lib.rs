@@ -11,3 +11,5 @@ pub mod sais32;
 #[cfg(feature = "sais64")]
 pub mod sais64;
 
+#[cfg(test)]
+mod tests;
