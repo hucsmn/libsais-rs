@@ -1,6 +1,6 @@
 //! 32-bit sais algorithms on u8 array inputs.
 
-use std::ptr::{NonNull, null_mut};
+use std::ptr::{NonNull, null, null_mut};
 
 use libc::c_void;
 
@@ -15,7 +15,7 @@ extern "C" {
     fn libsais(t: *const u8, sa: *mut i32, n: i32, fs: i32, freq: *mut i32) -> i32;
 
     /// int32_t libsais_int(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs);
-    fn libsais_int(t: *const i32, sa: *mut i32, n: i32, k: i32, fs: i32) -> i32;
+    fn libsais_int(t: *mut i32, sa: *mut i32, n: i32, k: i32, fs: i32) -> i32;
 
     /// int32_t libsais_ctx(const void * ctx, const uint8_t * T, int32_t * SA, int32_t n, int32_t fs, int32_t * freq);
     fn libsais_ctx(ctx: *mut c_void, t: *const u8, sa: *mut i32, n: i32, fs: i32, freq: *mut i32) -> i32;
@@ -39,16 +39,16 @@ extern "C" {
     fn libsais_unbwt_free_ctx(ctx: *mut c_void);
 
     /// int32_t libsais_unbwt(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
-    fn libsais_unbwt(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, i: i32) -> i32;
+    fn libsais_unbwt(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, i: i32) -> i32;
 
     /// int32_t libsais_unbwt_ctx(const void * ctx, const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i);
-    fn libsais_unbwt_ctx(ctx: *mut c_void, t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, i: i32) -> i32;
+    fn libsais_unbwt_ctx(ctx: *mut c_void, t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, i: i32) -> i32;
 
     /// int32_t libsais_unbwt_aux(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t r, const int32_t * I);
-    fn libsais_unbwt_aux(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, r: i32, i: *mut i32) -> i32;
+    fn libsais_unbwt_aux(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, r: i32, i: *const i32) -> i32;
 
     /// int32_t libsais_unbwt_aux_ctx(const void * ctx, const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t r, const int32_t * I);
-    fn libsais_unbwt_aux_ctx(ctx: *mut c_void, t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, r: i32, i: *mut i32) -> i32;
+    fn libsais_unbwt_aux_ctx(ctx: *mut c_void, t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, r: i32, i: *const i32) -> i32;
 
     /// int32_t libsais_plcp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int32_t n);
     fn libsais_plcp(t: *const u8, sa: *const i32, plcp: *mut i32, n: i32) -> i32;
@@ -66,7 +66,7 @@ extern "C" {
     fn libsais_omp(t: *const u8, sa: *mut i32, n: i32, fs: i32, freq: *mut i32, threads: i32) -> i32;
 
     /// int32_t libsais_int_omp(int32_t * T, int32_t * SA, int32_t n, int32_t k, int32_t fs, int32_t threads);
-    fn libsais_int_omp(t: *const i32, sa: *mut i32, n: i32, k: i32, fs: i32, threads: i32) -> i32;
+    fn libsais_int_omp(t: *mut i32, sa: *mut i32, n: i32, k: i32, fs: i32, threads: i32) -> i32;
 
     /// int32_t libsais_bwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, int32_t fs, int32_t * freq, int32_t threads);
     fn libsais_bwt_omp(t: *const u8, u: *mut u8, a: *mut i32, n: i32, fs: i32, freq: *mut i32, threads: i32) -> i32;
@@ -78,10 +78,10 @@ extern "C" {
     fn libsais_unbwt_create_ctx_omp(threads: i32) -> *mut c_void;
 
     /// int32_t libsais_unbwt_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t i, int32_t threads);
-    fn libsais_unbwt_omp(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, i: i32, threads: i32) -> i32;
+    fn libsais_unbwt_omp(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, i: i32, threads: i32) -> i32;
 
     /// int32_t libsais_unbwt_aux_omp(const uint8_t * T, uint8_t * U, int32_t * A, int32_t n, const int32_t * freq, int32_t r, const int32_t * I, int32_t threads);
-    fn libsais_unbwt_aux_omp(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *mut i32, r: i32, i: *mut i32, threads: i32) -> i32;
+    fn libsais_unbwt_aux_omp(t: *const u8, u: *mut u8, a: *mut i32, n: i32, freq: *const i32, r: i32, i: *const i32, threads: i32) -> i32;
 
     /// int32_t libsais_plcp_omp(const uint8_t * T, const int32_t * SA, int32_t * PLCP, int32_t n, int32_t threads);
     fn libsais_plcp_omp(t: *const u8, sa: *const i32, plcp: *mut i32, n: i32, threads: i32) -> i32;
@@ -190,28 +190,28 @@ impl UnbwtContext {
         }
     }
 
-    pub fn unbwt(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: i32) -> Result<()> {
+    pub fn unbwt(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+            let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
 
             let code = libsais_unbwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
             interpret_code(code).map(|_| ())
         }
     }
 
-    pub fn unbwt_aux(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<()> {
+    pub fn unbwt_aux(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: &[i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+            let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
             let r = aux_rate(i.len(), t.len())?;
-            let i_ptr = i.as_mut_ptr();
+            let i_ptr = i.as_ptr();
 
             let code = libsais_unbwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
             interpret_code(code).map(|_| ())
@@ -239,9 +239,9 @@ pub fn sais(t: &[u8], sa: &mut [i32], freq: Option<&mut FreqTable>) -> Result<()
     }
 }
 
-pub fn sais_int(t: &[i32], sa: &mut [i32], k: i32) -> Result<()> {
+pub fn sais_int(t: &mut [i32], sa: &mut [i32], k: i32) -> Result<()> {
     unsafe {
-        let t_ptr = t.as_ptr();
+        let t_ptr = t.as_mut_ptr();
         let sa_ptr = sa.as_mut_ptr();
         let (n, fs) = length_and_freespace(t.len(), sa.len())?;
 
@@ -278,28 +278,28 @@ pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTabl
     }
 }
 
-pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: i32) -> Result<()> {
+pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: i32) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
         let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+        let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
 
         let code = libsais_unbwt(t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
         interpret_code(code).map(|_| ())
     }
 }
 
-pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32]) -> Result<()> {
+pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: &[i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
         let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+        let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
         let r = aux_rate(i.len(), t.len())?;
-        let i_ptr = i.as_mut_ptr();
+        let i_ptr = i.as_ptr();
 
         let code = libsais_unbwt_aux(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
         interpret_code(code).map(|_| ())
@@ -348,9 +348,9 @@ pub mod openmp {
         }
     }
 
-    pub fn sais_int(t: &[i32], sa: &mut [i32], k: i32, threads: i32) -> Result<()> {
+    pub fn sais_int(t: &mut [i32], sa: &mut [i32], k: i32, threads: i32) -> Result<()> {
         unsafe {
-            let t_ptr = t.as_ptr();
+            let t_ptr = t.as_mut_ptr();
             let sa_ptr = sa.as_mut_ptr();
             let (n, fs) = length_and_freespace(t.len(), sa.len())?;
 
@@ -387,28 +387,28 @@ pub mod openmp {
         }
     }
 
-    pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: i32, threads: i32) -> Result<()> {
+    pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: i32, threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+            let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
 
             let code = libsais_unbwt_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, i, threads);
             interpret_code(code).map(|_| ())
         }
     }
 
-    pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut FreqTable>, i: &mut [i32], threads: i32) -> Result<()> {
+    pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&FreqTable>, i: &[i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq.map(|ptr| ptr.as_mut_ptr()).unwrap_or_else(null_mut);
+            let freq_ptr = freq.map(|ptr| ptr.as_ptr()).unwrap_or_else(null);
             let r = aux_rate(i.len(), t.len())?;
-            let i_ptr = i.as_mut_ptr();
+            let i_ptr = i.as_ptr();
 
             let code = libsais_unbwt_aux_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr, threads);
             interpret_code(code).map(|_| ())
