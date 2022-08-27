@@ -63,7 +63,7 @@ impl BuildExtend for Build {
             any_source = true;
         }
         if !any_source {
-            panic!("no libsais source file is included");
+            panic!("no libsais source files included");
         }
         self
     }

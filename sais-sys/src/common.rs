@@ -68,6 +68,7 @@ pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_cap: usize, text_size: us
 }
 
 #[inline]
+#[cfg(any(feature = "sais16", feature = "sais32"))]
 pub fn interpret_return_code_32(code: i32) -> Result<i32, Error<i32>> {
     match code {
         n if n >= 0 => Ok(n),
@@ -78,6 +79,7 @@ pub fn interpret_return_code_32(code: i32) -> Result<i32, Error<i32>> {
 }
 
 #[inline]
+#[cfg(feature = "sais64")]
 pub fn interpret_return_code_64(code: i64) -> Result<i64, Error<i64>> {
     match code {
         n if n >= 0 => Ok(n),
