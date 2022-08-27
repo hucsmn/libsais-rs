@@ -1,6 +1,6 @@
 //! 32-bit sais algorithms on u16 array inputs.
 
-use std::ptr::{NonNull, null, null_mut};
+use std::ptr::{null, null_mut, NonNull};
 
 use libc::c_void;
 

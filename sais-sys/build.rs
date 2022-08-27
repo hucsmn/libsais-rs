@@ -26,14 +26,10 @@ impl BuildExtend for Build {
     fn setup_compiler(&mut self) -> &mut Self {
         if !is_debug() {
             match self.tool_type() {
-                ToolType::ClangLike =>
-                    self.opt_level_str("fast"),
-                ToolType::GnuLike =>
-                    self.opt_level(2),
-                ToolType::MsvcLike =>
-                    self.opt_level(2),
-                _ =>
-                    panic!("failed to configure compiler"),
+                ToolType::ClangLike => self.opt_level_str("fast"),
+                ToolType::GnuLike => self.opt_level(2),
+                ToolType::MsvcLike => self.opt_level(2),
+                _ => panic!("failed to configure compiler"),
             };
             self.define("NDEBUG", None);
         }
@@ -45,12 +41,9 @@ impl BuildExtend for Build {
             return self;
         }
         match self.tool_type() {
-            ToolType::ClangLike | ToolType::GnuLike =>
-                self.flag("-fopenmp"),
-            ToolType::MsvcLike =>
-                self.flag("/openmp"),
-            _ =>
-                panic!("failed to configure openmp"),
+            ToolType::ClangLike | ToolType::GnuLike => self.flag("-fopenmp"),
+            ToolType::MsvcLike => self.flag("/openmp"),
+            _ => panic!("failed to configure openmp"),
         };
         self
     }
