@@ -13,16 +13,16 @@ path = "src/lib.rs"
 
 [dependencies]
 libc = "0.2"
-
-[dev-dependencies]
 lazy_static = "1.4"
+openmp-sys = { optional = true, version = "1.2" }
 
 [build-dependencies]
 cc = "1.0"
+openmp-sys = { optional = true, version = "1.2" }
 
 [features]
 default = [ "sais32", "openmp" ]
-openmp = []
 sais16 = []
 sais32 = []
 sais64 = []
+openmp = [ "openmp-sys" ]
