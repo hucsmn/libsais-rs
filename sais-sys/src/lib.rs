@@ -2,6 +2,8 @@
 
 pub mod errors;
 
+mod common;
+
 #[cfg(feature = "sais16")]
 pub mod sais16;
 

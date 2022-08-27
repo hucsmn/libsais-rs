@@ -1,16 +1,23 @@
 //! Definition of interpreted error codes from sais algorithms.
 
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, Formatter};
+
+/// Raw return code types from libsais.
+pub trait ReturnCode: Copy + Eq + Debug + Display {}
+
+impl ReturnCode for i32 {}
+
+impl ReturnCode for i64 {}
 
 /// Interpreted error code from libsais.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum Error<Int: Copy + Eq + Debug + Display> {
+pub enum Error<I: ReturnCode> {
     IllegalArguments,
     InternalError,
-    Uncategorized(Int),
+    Uncategorized(I),
 }
 
-impl<Int: Copy + Eq + Debug + Display> Error<Int> {
+impl<I: ReturnCode> Error<I> {
     /// Get kind name of the interpreted libsais error code.
     fn kind_name(&self) -> &'static str {
         match &self {
@@ -21,14 +28,14 @@ impl<Int: Copy + Eq + Debug + Display> Error<Int> {
     }
 }
 
-impl<Int: Copy + Eq + Debug + Display> std::error::Error for Error<Int> {
+impl<I: ReturnCode> std::error::Error for Error<I> {
     fn description(&self) -> &str {
         self.kind_name()
     }
 }
 
-impl<Int: Copy + Eq + Debug + Display> std::fmt::Display for Error<Int> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<I: ReturnCode> Display for Error<I> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_str(self.kind_name())
     }
 }

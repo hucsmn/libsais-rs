@@ -1,8 +1,10 @@
 //! 32-bit sais algorithms on u16 array inputs.
 
-use std::ptr::{null, null_mut, NonNull};
+use std::ptr::NonNull;
 
 use libc::c_void;
+
+use crate::common::{aux_rate, freq_as_mut_ptr, freq_as_ptr, interpret_return_code_32, same_size, split_size};
 
 extern "C" {
     /// void * libsais16_create_ctx(void);
@@ -118,11 +120,11 @@ impl SaisContext {
         unsafe {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_mut_ptr();
-            let (n, fs) = length_and_freespace(t.len(), sa.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(t.len(), sa.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_ctx(self.0.as_mut(), t_ptr, sa_ptr, n, fs, freq_ptr);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -131,11 +133,11 @@ impl SaisContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_bwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
-            interpret_code(code)
+            interpret_return_code_32(code)
         }
     }
 
@@ -144,13 +146,13 @@ impl SaisContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
 
             let code = libsais16_bwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 }
@@ -189,11 +191,11 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_ptr(freq)?;
+            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_unbwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -202,13 +204,13 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_ptr(freq)?;
+            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
 
             let code = libsais16_unbwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 }
@@ -225,11 +227,11 @@ pub fn sais(t: &[u16], sa: &mut [i32], freq: Option<&mut [i32]>) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let sa_ptr = sa.as_mut_ptr();
-        let (n, fs) = length_and_freespace(t.len(), sa.len())?;
-        let freq_ptr = freq_as_mut_ptr(freq)?;
+        let (n, fs) = split_size(t.len(), sa.len())?;
+        let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais16(t_ptr, sa_ptr, n, fs, freq_ptr);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -238,11 +240,11 @@ pub fn bwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) ->
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq_as_mut_ptr(freq)?;
+        let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais16_bwt(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
-        interpret_code(code)
+        interpret_return_code_32(code)
     }
 }
 
@@ -251,13 +253,13 @@ pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq_as_mut_ptr(freq)?;
+        let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_mut_ptr();
 
         let code = libsais16_bwt_aux(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -266,11 +268,11 @@ pub fn unbwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq_as_ptr(freq)?;
+        let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais16_unbwt(t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -279,13 +281,13 @@ pub fn unbwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, 
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-        let freq_ptr = freq_as_ptr(freq)?;
+        let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_ptr();
 
         let code = libsais16_unbwt_aux(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -294,10 +296,10 @@ pub fn plcp(t: &[u16], sa: &[i32], plcp: &mut [i32]) -> Result<()> {
         let t_ptr = t.as_ptr();
         let sa_ptr = sa.as_ptr();
         let plcp_ptr = plcp.as_mut_ptr();
-        let (n, _) = length_and_freespace(same_value(t.len(), plcp.len())?, sa.len())?;
+        let (n, _) = split_size(same_size(t.len(), plcp.len())?, sa.len())?;
 
         let code = libsais16_plcp(t_ptr, sa_ptr, plcp_ptr, n);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -306,10 +308,10 @@ pub fn lcp(plcp: &[i32], sa: &[i32], lcp: &mut [i32]) -> Result<()> {
         let plcp_ptr = plcp.as_ptr();
         let sa_ptr = sa.as_ptr();
         let lcp_ptr = lcp.as_mut_ptr();
-        let (n, _) = length_and_freespace(same_value(plcp.len(), lcp.len())?, sa.len())?;
+        let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, sa.len())?;
 
         let code = libsais16_lcp(plcp_ptr, sa_ptr, lcp_ptr, n);
-        interpret_code(code).map(|_| ())
+        interpret_return_code_32(code).map(|_| ())
     }
 }
 
@@ -323,11 +325,11 @@ pub mod openmp {
         unsafe {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_mut_ptr();
-            let (n, fs) = length_and_freespace(t.len(), sa.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(t.len(), sa.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_omp(t_ptr, sa_ptr, n, fs, freq_ptr, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -336,11 +338,11 @@ pub mod openmp {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_bwt_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, threads);
-            interpret_code(code)
+            interpret_return_code_32(code)
         }
     }
 
@@ -349,13 +351,13 @@ pub mod openmp {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_mut_ptr(freq)?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
 
             let code = libsais16_bwt_aux_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -364,11 +366,11 @@ pub mod openmp {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_ptr(freq)?;
+            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_unbwt_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, i, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -377,13 +379,13 @@ pub mod openmp {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(t.len(), u.len())?, a.len())?;
-            let freq_ptr = freq_as_ptr(freq)?;
+            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
 
             let code = libsais16_unbwt_aux_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -392,10 +394,10 @@ pub mod openmp {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_ptr();
             let plcp_ptr = plcp.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(t.len(), plcp.len())?, sa.len())?;
+            let (n, _) = split_size(same_size(t.len(), plcp.len())?, sa.len())?;
 
             let code = libsais16_plcp_omp(t_ptr, sa_ptr, plcp_ptr, n, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
     }
 
@@ -404,78 +406,10 @@ pub mod openmp {
             let plcp_ptr = plcp.as_ptr();
             let sa_ptr = sa.as_ptr();
             let lcp_ptr = lcp.as_mut_ptr();
-            let (n, _) = length_and_freespace(same_value(plcp.len(), lcp.len())?, sa.len())?;
+            let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, sa.len())?;
 
             let code = libsais16_lcp_omp(plcp_ptr, sa_ptr, lcp_ptr, n, threads);
-            interpret_code(code).map(|_| ())
+            interpret_return_code_32(code).map(|_| ())
         }
-    }
-}
-
-unsafe fn freq_as_mut_ptr(freq: Option<&mut [i32]>) -> Result<*mut i32> {
-    if let Some(slice_mut) = freq {
-        same_value(slice_mut.len(), FREQ_TABLE_SIZE)?;
-        Ok(slice_mut.as_mut_ptr())
-    } else {
-        Ok(null_mut())
-    }
-}
-
-unsafe fn freq_as_ptr(freq: Option<&[i32]>) -> Result<*const i32> {
-    if let Some(slice) = freq {
-        same_value(slice.len(), FREQ_TABLE_SIZE)?;
-        Ok(slice.as_ptr())
-    } else {
-        Ok(null())
-    }
-}
-
-fn same_value<T: Copy + Eq>(a: T, b: T) -> Result<T> {
-    if a != b {
-        Err(Error::IllegalArguments)
-    } else {
-        Ok(a)
-    }
-}
-
-fn length_and_freespace(n: usize, m: usize) -> Result<(i32, i32)> {
-    let p: i32 = n.try_into().map_err(|_| Error::IllegalArguments)?;
-    let q: i32 = m.try_into().map_err(|_| Error::IllegalArguments)?;
-    let fs = if q >= p { q - p } else { Err(Error::IllegalArguments)? };
-    Ok((p, fs))
-}
-
-fn aux_rate(cap: usize, n: usize) -> Result<i32> {
-    if cap == 0 {
-        return Err(Error::IllegalArguments);
-    }
-
-    // calculate minimum rate
-    let mut rate = n / cap;
-    if n % cap != 0 {
-        rate = n / cap + 1;
-    }
-    if rate < 2 {
-        return Ok(2);
-    }
-
-    // try to find a minimum power of two rate value
-    if (rate & (rate - 1)) != 0 {
-        rate = rate.next_power_of_two();
-    }
-    if rate == 0 {
-        return Err(Error::IllegalArguments);
-    }
-
-    // convert usize
-    rate.try_into().map_err(|_| Error::IllegalArguments)
-}
-
-fn interpret_code(code: i32) -> Result<i32> {
-    match code {
-        n if n >= 0 => Ok(n),
-        -1 => Err(Error::IllegalArguments),
-        -2 => Err(Error::InternalError),
-        err => Err(Error::Uncategorized(err)),
     }
 }
