@@ -40,7 +40,11 @@ impl BuildExtend for Build {
         if !cfg!(feature = "openmp") {
             return self;
         }
-        std::env::var("DEP_OPENMP_FLAG").unwrap().split(" ").for_each(|f| { self.flag(f); });
+        match self.tool_type() {
+            ToolType::ClangLike | ToolType::GnuLike => self.flag("-fopenmp"),
+            ToolType::MsvcLike => self.flag("/openmp"),
+            _ => panic!("failed to configure openmp"),
+        };
         self
     }
 

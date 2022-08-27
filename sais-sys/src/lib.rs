@@ -1,6 +1,6 @@
 //! Low-level rust bindings to libsais.
 
-#[cfg(feature = "openmp")]
+#[cfg(all(feature = "openmp", not(windows)))]
 extern crate openmp_sys;
 
 pub mod errors;
