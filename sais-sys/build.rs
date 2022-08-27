@@ -41,9 +41,17 @@ impl BuildExtend for Build {
             return self;
         }
         match self.tool_type() {
-            ToolType::ClangLike | ToolType::GnuLike => self.flag("-fopenmp"),
-            ToolType::MsvcLike => self.flag("/openmp"),
-            _ => panic!("failed to configure openmp"),
+            ToolType::ClangLike | ToolType::GnuLike => {
+                self.flag("-fopenmp");
+                if cfg!(windows) {
+                    // when the toolchain is *-pc-windows-gnu, statically link libgomp
+                    println!("cargo:rustc-link-lib=static=gomp");
+                }
+            },
+            ToolType::MsvcLike => {
+                self.flag("/openmp");
+            },
+            _ => panic!("failed to configure openmp for unsupported compiler"),
         };
         self
     }
