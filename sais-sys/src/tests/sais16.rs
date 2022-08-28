@@ -27,6 +27,11 @@ lazy_static! {
         samples.push(random_text(100..=200, 0..=64));
         samples.push(random_text(100..=200, 128..=255));
         samples.push(random_text(100..=200, 15872..=16384));
+        samples.push(random_text(100000..=200000, 0..=4));
+        samples.push(random_text(100000..=200000, 0..=16));
+        samples.push(random_text(100000..=200000, 0..=64));
+        samples.push(random_text(100000..=200000, 128..=255));
+        samples.push(random_text(100000..=200000, 15872..=16384));
         samples
     };
 }
