@@ -1,7 +1,19 @@
 use std::fmt::Debug;
+use std::ops::RangeInclusive;
 
 use num_traits::{one, zero};
 use num_traits::{AsPrimitive, NumAssignOps, PrimInt};
+use rand::distributions::uniform;
+use rand::prelude::*;
+
+pub fn random_text<I: PrimInt + uniform::SampleUniform>(text_size: RangeInclusive<usize>, alphabet_range: RangeInclusive<I>) -> Vec<I> {
+    let mut rng = thread_rng();
+    let mut sample = vec![zero(); rng.gen_range(text_size)];
+    for item in sample.iter_mut() {
+        *item = rng.gen_range(alphabet_range.clone());
+    }
+    sample
+}
 
 #[inline]
 pub fn allocate_suffix_arrays<I: PrimInt>(len: usize) -> Vec<Vec<I>> {

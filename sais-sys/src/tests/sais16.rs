@@ -5,19 +5,29 @@ use crate::tests::common::*;
 
 lazy_static! {
     static ref TEXTS: Vec<Vec<u16>> = {
-        vec![
-            vec![],
-            vec![16384],
-            vec![0, 65535],
-            vec![109, 105, 115, 115, 105, 115, 115, 105, 112, 112, 105],
-            vec![
-                116, 104, 101, 32, 113, 117, 105, 99, 107, 32, 98, 114, 111, 119, 110, 32, 102, 111, 120, 32, 106, 117, 109, 112, 115, 32, 111, 118, 101, 114,
-                32, 116, 104, 101, 32, 108, 97, 122, 121, 32, 100, 111, 103,
-            ],
-            vec![
-                65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
-            ],
-        ]
+        let text_samples: Vec<&[u8]> = vec![
+            b"",
+            b"_",
+            b"\x00\xff",
+            b"mississippi",
+            b"the quick brown fox jumps over the lazy dog",
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \
+            Egestas egestas fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate. Feugiat in fermentum posuere urna. \
+            Amet nisl purus in mollis nunc. Tellus orci ac auctor augue mauris augue. Dolor morbi non arcu risus quis varius quam quisque id. \
+            Et malesuada fames ac turpis egestas sed tempus. Eget mi proin sed libero enim sed faucibus. Turpis massa sed elementum tempus. \
+            Congue eu consequat ac felis donec.",
+        ];
+        let mut samples: Vec<Vec<u16>> = text_samples
+            .into_iter()
+            .map(|sample| sample.to_vec().into_iter().map(|ch| ch as u16).collect())
+            .collect();
+        samples.push(random_text(100..=200, 0..=4));
+        samples.push(random_text(100..=200, 0..=16));
+        samples.push(random_text(100..=200, 0..=64));
+        samples.push(random_text(100..=200, 128..=255));
+        samples.push(random_text(100..=200, 15872..=16384));
+        samples
     };
 }
 
