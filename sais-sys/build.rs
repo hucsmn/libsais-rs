@@ -41,11 +41,14 @@ impl BuildExtend for Build {
             return self;
         }
         match self.tool_type() {
-            ToolType::ClangLike | ToolType::GnuLike => {
+            ToolType::ClangLike => {
+                self.flag("-fopenmp");
+            },
+            ToolType::GnuLike => {
                 self.flag("-fopenmp");
                 if cfg!(windows) {
-                    // when the toolchain is *-pc-windows-gnu, statically link libgomp
-                    println!("cargo:rustc-link-lib=static=gomp");
+                    // openmp-sys reports missing gomp.dll on *-pc-windows-gnu/mingw-w64, workaround for this case
+                    println!("cargo:rustc-link-arg=-l:libgomp.dll.a");
                 }
             },
             ToolType::MsvcLike => {
