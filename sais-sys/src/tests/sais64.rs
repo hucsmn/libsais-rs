@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
 
 use crate::sais64::*;
+use crate::tests::common::*;
 
 lazy_static! {
     static ref TEXTS: Vec<&'static [u8]> = {
@@ -27,7 +28,7 @@ fn test_sais() {
             // sais, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             sais(t, sa.as_mut_slice(), Some(&mut freq)).expect("sais failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             check_suffix_array(t, sa.as_slice());
         }
     }
@@ -46,7 +47,7 @@ fn test_sais_openmp() {
             // openmp::sais, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             openmp::sais(t, sa.as_mut_slice(), Some(&mut freq), 0).expect("sais failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             check_suffix_array(t, sa.as_slice());
         }
     }
@@ -68,7 +69,7 @@ fn test_bwt_unbwt() {
             // bwt + unbwt, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             bwt(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq)).expect("bwt failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
@@ -92,7 +93,7 @@ fn test_bwt_unbwt_openmp() {
             // openmp::bwt + openmp::unbwt, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             openmp::bwt(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), 0).expect("bwt failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             openmp::unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i, 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
@@ -116,7 +117,7 @@ fn test_bwt_unbwt_aux() {
             // bwt_aux + unbwt_aux, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), i.as_mut_slice()).expect("bwt failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i.as_slice()).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
@@ -141,7 +142,7 @@ fn test_bwt_unbwt_aux_openmp() {
             // openmp::bwt_aux + openmp::unbwt_aux, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
             openmp::bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), i.as_mut_slice(), 0).expect("bwt failed");
-            check_frequency_table(t, freq.as_slice());
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             openmp::unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i.as_slice(), 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
@@ -181,39 +182,4 @@ fn test_plcp_lcp_openmp() {
         openmp::lcp(plcp_array.as_slice(), sa.as_slice(), lcp_array.as_mut_slice(), 0).expect("lcp failed");
         check_lcp_array(t, sa.as_slice(), lcp_array.as_slice());
     }
-}
-
-fn allocate_suffix_arrays(len: usize) -> Vec<Vec<i64>> {
-    vec![vec![0i64; len], vec![0i64; len.saturating_mul(2)]]
-}
-
-fn check_suffix_array(t: &[u8], sa: &[i64]) {
-    if t.len() > 0 {
-        assert!(sa.len() >= t.len());
-        for i in 0..t.len() - 1 {
-            assert!(t[sa[i] as usize..] < t[sa[i + 1] as usize..]);
-        }
-    }
-}
-
-fn check_lcp_array(t: &[u8], sa: &[i64], lcp: &[i64]) {
-    if t.len() > 0 {
-        assert!(sa.len() >= t.len());
-        assert!(lcp.len() >= t.len());
-        assert_eq!(lcp[0], 0);
-        for i in 1..t.len() {
-            let common = Iterator::zip(t[sa[i - 1] as usize..].iter(), t[sa[i] as usize..].iter())
-                .take_while(|(&x, &y)| x == y)
-                .count();
-            assert_eq!(lcp[i], common.try_into().unwrap());
-        }
-    }
-}
-
-fn check_frequency_table(t: &[u8], freq: &[i64]) {
-    let mut rust_freq = [0i64; FREQ_TABLE_SIZE];
-    for &ch in t {
-        rust_freq[ch as usize] += 1;
-    }
-    assert_eq!(freq, rust_freq.as_slice());
 }

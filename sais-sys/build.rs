@@ -43,17 +43,17 @@ impl BuildExtend for Build {
         match self.tool_type() {
             ToolType::ClangLike => {
                 self.flag("-fopenmp");
-            },
+            }
             ToolType::GnuLike => {
                 self.flag("-fopenmp");
                 if cfg!(windows) {
                     // openmp-sys reports missing gomp.dll on *-pc-windows-gnu/mingw-w64, workaround for this case
                     println!("cargo:rustc-link-arg=-l:libgomp.dll.a");
                 }
-            },
+            }
             ToolType::MsvcLike => {
                 self.flag("/openmp");
-            },
+            }
             _ => panic!("failed to configure openmp for unsupported compiler"),
         };
         self

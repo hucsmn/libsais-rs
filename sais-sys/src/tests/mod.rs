@@ -1,3 +1,5 @@
+mod common;
+
 #[cfg(feature = "sais16")]
 mod sais16;
 
