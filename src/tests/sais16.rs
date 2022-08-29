@@ -1,40 +1,38 @@
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::sais16::*;
 use crate::tests::common::*;
 
-lazy_static! {
-    static ref TEXTS: Vec<Vec<u16>> = {
-        let text_samples: Vec<&[u8]> = vec![
-            b"",
-            b"_",
-            b"\x00\xff",
-            b"mississippi",
-            b"the quick brown fox jumps over the lazy dog",
-            b"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \
+static TEXTS: Lazy<Vec<Vec<u16>>> = Lazy::new(|| {
+    let text_samples: Vec<&[u8]> = vec![
+        b"",
+        b"_",
+        b"\x00\xff",
+        b"mississippi",
+        b"the quick brown fox jumps over the lazy dog",
+        b"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        b"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. \
             Egestas egestas fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate. Feugiat in fermentum posuere urna. \
             Amet nisl purus in mollis nunc. Tellus orci ac auctor augue mauris augue. Dolor morbi non arcu risus quis varius quam quisque id. \
             Et malesuada fames ac turpis egestas sed tempus. Eget mi proin sed libero enim sed faucibus. Turpis massa sed elementum tempus. \
             Congue eu consequat ac felis donec.",
-        ];
-        let mut samples: Vec<Vec<u16>> = text_samples
-            .into_iter()
-            .map(|sample| sample.to_vec().into_iter().map(|ch| ch as u16).collect())
-            .collect();
-        samples.push(random_text(100..=200, 0..=4));
-        samples.push(random_text(100..=200, 0..=16));
-        samples.push(random_text(100..=200, 0..=64));
-        samples.push(random_text(100..=200, 128..=255));
-        samples.push(random_text(100..=200, 15872..=16384));
-        samples.push(random_text(100000..=200000, 0..=4));
-        samples.push(random_text(100000..=200000, 0..=16));
-        samples.push(random_text(100000..=200000, 0..=64));
-        samples.push(random_text(100000..=200000, 128..=255));
-        samples.push(random_text(100000..=200000, 15872..=16384));
-        samples
-    };
-}
+    ];
+    let mut samples: Vec<Vec<u16>> = text_samples
+        .into_iter()
+        .map(|sample| sample.to_vec().into_iter().map(|ch| ch as u16).collect())
+        .collect();
+    samples.push(random_text(100..=200, 0..=4));
+    samples.push(random_text(100..=200, 0..=16));
+    samples.push(random_text(100..=200, 0..=64));
+    samples.push(random_text(100..=200, 128..=255));
+    samples.push(random_text(100..=200, 15872..=16384));
+    samples.push(random_text(100000..=200000, 0..=4));
+    samples.push(random_text(100000..=200000, 0..=16));
+    samples.push(random_text(100000..=200000, 0..=64));
+    samples.push(random_text(100000..=200000, 128..=255));
+    samples.push(random_text(100000..=200000, 15872..=16384));
+    samples
+});
 
 #[test]
 fn test_sais() {
