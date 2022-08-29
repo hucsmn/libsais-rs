@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use once_cell::sync::Lazy;
 
 use crate::sais32::*;
@@ -30,7 +32,7 @@ static TEXTS: Lazy<Vec<Vec<u8>>> = Lazy::new(|| {
 });
 
 #[test]
-fn test_sais() {
+fn test_sais_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut sa in allocate_suffix_arrays(t.len()) {
@@ -43,7 +45,16 @@ fn test_sais() {
             sais(t, sa.as_mut_slice(), Some(&mut freq)).expect("sais failed");
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             check_suffix_array(t, sa.as_slice());
+        }
+    }
+}
 
+#[test]
+#[cfg(feature = "context")]
+fn test_sais_context() {
+    let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
+    for t in texts {
+        for mut sa in allocate_suffix_arrays(t.len()) {
             // sais, w/ context
             let mut ctx = SaisContext::new().unwrap();
             ctx.sais(t, sa.as_mut_slice(), None).expect("sais failed");
@@ -79,7 +90,8 @@ fn test_sais_parallel() {
 }
 
 #[test]
-fn test_bwt_unbwt() {
+#[cfg(feature = "bwt")]
+fn test_bwt_unbwt_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
@@ -97,21 +109,24 @@ fn test_bwt_unbwt() {
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
+        }
+    }
+}
 
-            // bwt + unbwt, w/ contexts
+#[test]
+#[cfg(all(feature = "bwt", feature = "context"))]
+fn test_bwt_unbwt_context() {
+    let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
+    for t in texts {
+        for mut a in allocate_suffix_arrays(t.len()) {
+            let mut u = vec![0u8; t.len()];
+            let mut s = vec![0u8; t.len()];
             let mut bwt_ctx = SaisContext::new().unwrap();
             let mut unbwt_ctx = UnbwtContext::new().unwrap();
-            let i = bwt_ctx
-                .bwt(t, u.as_mut_slice(), a.as_mut_slice(), None)
-                .expect("bwt failed");
-            unbwt_ctx
-                .unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), None, i)
-                .expect("unbwt failed");
-            assert_eq!(t, s.as_slice());
 
             // bwt + unbwt, w/ contexts, w/ output symbol frequency table
             let mut freq = [0i32; FREQ_TABLE_SIZE];
-            bwt_ctx
+            let i = bwt_ctx
                 .bwt(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq))
                 .expect("bwt failed");
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
@@ -124,7 +139,7 @@ fn test_bwt_unbwt() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "bwt", feature = "parallel"))]
 fn test_bwt_unbwt_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -148,7 +163,8 @@ fn test_bwt_unbwt_parallel() {
 }
 
 #[test]
-fn test_bwt_unbwt_aux() {
+#[cfg(feature = "bwt_aux")]
+fn test_bwt_unbwt_aux_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
@@ -167,10 +183,23 @@ fn test_bwt_unbwt_aux() {
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i.as_slice()).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
+        }
+    }
+}
 
-            // bwt_aux + unbwt_aux, w/ contexts
+#[test]
+#[cfg(all(feature = "bwt_aux", feature = "context"))]
+fn test_bwt_unbwt_aux_context() {
+    let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
+    for t in texts {
+        for mut a in allocate_suffix_arrays(t.len()) {
+            let mut u = vec![0u8; t.len()];
+            let mut s = vec![0u8; t.len()];
+            let mut i = vec![0i32; Ord::max(t.len() / 4, 1)];
             let mut bwt_ctx = SaisContext::new().unwrap();
             let mut unbwt_ctx = UnbwtContext::new().unwrap();
+
+            // bwt_aux + unbwt_aux, w/ contexts
             bwt_ctx
                 .bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), None, i.as_mut_slice())
                 .expect("bwt failed");
@@ -194,7 +223,7 @@ fn test_bwt_unbwt_aux() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "bwt_aux", feature = "parallel"))]
 fn test_bwt_unbwt_aux_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -219,7 +248,8 @@ fn test_bwt_unbwt_aux_parallel() {
 }
 
 #[test]
-fn test_plcp_lcp() {
+#[cfg(feature = "lcp")]
+fn test_plcp_lcp_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         let mut sa = vec![0i32; t.len()];
@@ -236,7 +266,7 @@ fn test_plcp_lcp() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "lcp", feature = "parallel"))]
 fn test_plcp_lcp_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {

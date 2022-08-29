@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use once_cell::sync::Lazy;
 
 use crate::sais64::*;
@@ -30,7 +32,7 @@ static TEXTS: Lazy<Vec<Vec<u8>>> = Lazy::new(|| {
 });
 
 #[test]
-fn test_sais() {
+fn test_sais_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut sa in allocate_suffix_arrays(t.len()) {
@@ -67,7 +69,8 @@ fn test_sais_parallel() {
 }
 
 #[test]
-fn test_bwt_unbwt() {
+#[cfg(feature = "bwt")]
+fn test_bwt_unbwt_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
@@ -90,7 +93,7 @@ fn test_bwt_unbwt() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "bwt", feature = "parallel"))]
 fn test_bwt_unbwt_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -114,7 +117,8 @@ fn test_bwt_unbwt_parallel() {
 }
 
 #[test]
-fn test_bwt_unbwt_aux() {
+#[cfg(feature = "bwt_aux")]
+fn test_bwt_unbwt_aux_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
@@ -138,7 +142,7 @@ fn test_bwt_unbwt_aux() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "bwt_aux", feature = "parallel"))]
 fn test_bwt_unbwt_aux_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -163,7 +167,8 @@ fn test_bwt_unbwt_aux_parallel() {
 }
 
 #[test]
-fn test_plcp_lcp() {
+#[cfg(feature = "lcp")]
+fn test_plcp_lcp_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         let mut sa = vec![0i64; t.len()];
@@ -180,7 +185,7 @@ fn test_plcp_lcp() {
 }
 
 #[test]
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "lcp", feature = "parallel"))]
 fn test_plcp_lcp_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {

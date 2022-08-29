@@ -1,6 +1,6 @@
 use sais_sys::sais64::*;
 
-use crate::common::{aux_rate, freq_as_mut_ptr, freq_as_ptr, interpret_return_code_64, same_size, split_size};
+use crate::common::*;
 
 /// Output symbol frequency table size for u8 strings.
 pub const FREQ_TABLE_SIZE: usize = 256;
@@ -23,6 +23,7 @@ pub fn sais(t: &[u8], sa: &mut [i64], freq: Option<&mut [i64]>) -> Result<()> {
     }
 }
 
+#[cfg(feature = "bwt")]
 pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>) -> Result<i64> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -36,6 +37,7 @@ pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>) -> R
     }
 }
 
+#[cfg(feature = "bwt_aux")]
 pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>, i: &mut [i64]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -51,6 +53,7 @@ pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>, 
     }
 }
 
+#[cfg(feature = "bwt")]
 pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i: i64) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -64,6 +67,7 @@ pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i: i64
     }
 }
 
+#[cfg(feature = "bwt_aux")]
 pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i: &[i64]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -79,6 +83,7 @@ pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i:
     }
 }
 
+#[cfg(feature = "lcp")]
 pub fn plcp(t: &[u8], sa: &[i64], plcp: &mut [i64]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -91,6 +96,7 @@ pub fn plcp(t: &[u8], sa: &[i64], plcp: &mut [i64]) -> Result<()> {
     }
 }
 
+#[cfg(feature = "lcp")]
 pub fn lcp(plcp: &[i64], sa: &[i64], lcp: &mut [i64]) -> Result<()> {
     unsafe {
         let plcp_ptr = plcp.as_ptr();
@@ -121,6 +127,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt")]
     pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>, threads: i64) -> Result<i64> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -134,6 +141,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&mut [i64]>, i: &mut [i64], threads: i64) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -149,6 +157,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt")]
     pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i: i64, threads: i64) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -162,6 +171,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i64], freq: Option<&[i64]>, i: &[i64], threads: i64) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -177,6 +187,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "lcp")]
     pub fn plcp(t: &[u8], sa: &[i64], plcp: &mut [i64], threads: i64) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -189,6 +200,7 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "lcp")]
     pub fn lcp(plcp: &[i64], sa: &[i64], lcp: &mut [i64], threads: i64) -> Result<()> {
         unsafe {
             let plcp_ptr = plcp.as_ptr();

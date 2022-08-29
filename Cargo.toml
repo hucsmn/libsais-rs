@@ -16,7 +16,15 @@ once_cell = "1.13"
 
 [features]
 default = [ "sais32", "parallel" ]
+
 sais16 = [ "sais-sys/sais16" ]
 sais32 = [ "sais-sys/sais32" ]
 sais64 = [ "sais-sys/sais64" ]
+
 parallel = [ "sais-sys/openmp" ]
+context = []
+
+sais_int = []
+bwt = []
+bwt_aux = []
+lcp = []

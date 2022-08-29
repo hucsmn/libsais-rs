@@ -1,9 +1,9 @@
-use std::ptr::{null, null_mut};
-
 use crate::errors::{Error, ReturnCode};
 
 #[inline]
 pub unsafe fn freq_as_mut_ptr<T, EI: ReturnCode>(freq: Option<&mut [T]>, size: usize) -> Result<*mut T, Error<EI>> {
+    use std::ptr::null_mut;
+
     if let Some(slice_mut) = freq {
         same_size(slice_mut.len(), size)?;
         Ok(slice_mut.as_mut_ptr())
@@ -13,7 +13,10 @@ pub unsafe fn freq_as_mut_ptr<T, EI: ReturnCode>(freq: Option<&mut [T]>, size: u
 }
 
 #[inline]
+#[cfg(any(feature = "bwt", feature = "bwt_aux"))]
 pub unsafe fn freq_as_ptr<T, EI: ReturnCode>(freq: Option<&[T]>, size: usize) -> Result<*const T, Error<EI>> {
+    use std::ptr::null;
+
     if let Some(slice) = freq {
         same_size(slice.len(), size)?;
         Ok(slice.as_ptr())
@@ -42,6 +45,7 @@ pub fn split_size<T: TryFrom<usize>, EI: ReturnCode>(small_size: usize, big_size
 }
 
 #[inline]
+#[cfg(feature = "bwt_aux")]
 pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_cap: usize, text_size: usize) -> Result<T, Error<EI>> {
     if aux_cap == 0 {
         return Err(Error::IllegalArguments);
