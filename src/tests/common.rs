@@ -8,8 +8,6 @@ use num_traits::{AsPrimitive, NumAssignOps, PrimInt};
 use rand::distributions::uniform;
 use rand::prelude::*;
 
-const MIN_FREE_SPACE: usize = 1;
-
 pub fn random_text<I: PrimInt + uniform::SampleUniform>(text_size: RangeInclusive<usize>, alphabet_range: RangeInclusive<I>) -> Vec<I> {
     let mut rng = thread_rng();
     let mut sample = vec![zero(); rng.gen_range(text_size)];
@@ -22,10 +20,12 @@ pub fn random_text<I: PrimInt + uniform::SampleUniform>(text_size: RangeInclusiv
 #[inline]
 pub fn allocate_suffix_arrays<I: PrimInt>(text_len: usize) -> Vec<Vec<I>> {
     vec![
-        // allocates text_len + MIN_FREE_SPACE
-        vec![zero(); text_len + MIN_FREE_SPACE],
-        // allocates text_len * 1.25
-        vec![zero(); text_len + Ord::max((text_len as f64 * 0.25) as usize, MIN_FREE_SPACE)],
+        // allocates text_len
+        vec![zero(); text_len],
+        // allocates text_len + 256
+        vec![zero(); text_len.saturating_add(256)],
+        // allocates text_len * 1.125
+        vec![zero(); text_len.saturating_add((text_len as f64 * 0.125) as usize)],
     ]
 }
 

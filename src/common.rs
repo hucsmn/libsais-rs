@@ -45,6 +45,15 @@ pub fn split_size<T: TryFrom<usize>, EI: ReturnCode>(small_size: usize, big_size
 }
 
 #[inline]
+#[cfg(any(feature = "bwt", feature = "bwt_aux"))]
+pub fn unbwt_sufficient_size<T: TryFrom<usize>, EI: ReturnCode>(text_size: usize, tmp_size: usize) -> Result<T, Error<EI>> {
+    if tmp_size <= text_size {
+        Err(Error::IllegalArguments)?
+    }
+    Ok(text_size.try_into().map_err(|_| Error::InternalError)?)
+}
+
+#[inline]
 #[cfg(feature = "bwt_aux")]
 pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_cap: usize, text_size: usize) -> Result<T, Error<EI>> {
     if aux_cap == 0 {

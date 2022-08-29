@@ -121,7 +121,7 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_unbwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
@@ -135,7 +135,7 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
@@ -203,7 +203,7 @@ pub fn unbwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
         let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais16_unbwt(t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
@@ -217,7 +217,7 @@ pub fn unbwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, 
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
         let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_ptr();
@@ -307,7 +307,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais16_unbwt_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, i, threads);
@@ -321,7 +321,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, _) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
