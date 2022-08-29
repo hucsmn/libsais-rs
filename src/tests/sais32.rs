@@ -106,7 +106,7 @@ fn test_bwt_unbwt_basic() {
 
         // bwt + unbwt, w/ output symbol frequency table
         let mut freq = [0i32; FREQ_TABLE_SIZE];
-        bwt(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq)).expect("bwt failed");
+        let i = bwt(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq)).expect("bwt failed");
         check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
         unbwt(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i).expect("unbwt failed");
         assert_eq!(t, s.as_slice());
@@ -164,7 +164,7 @@ fn test_bwt_unbwt_parallel() {
 
         // parallel::bwt + parallel::unbwt, w/ output symbol frequency table
         let mut freq = [0i32; FREQ_TABLE_SIZE];
-        parallel::bwt(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), 0).expect("bwt failed");
+        let i = parallel::bwt(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), 0).expect("bwt failed");
         check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
         parallel::unbwt(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i, 0).expect("unbwt failed");
         assert_eq!(t, s.as_slice());
