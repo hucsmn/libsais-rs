@@ -6,4 +6,17 @@ license = "Apache-2.0"
 description = "rust bindings to libsais"
 
 [dependencies]
+libc = "0.2"
 sais-sys = { version = "0.1.0", path = "./sais-sys" }
+
+[dev-dependencies]
+rand = "0.8"
+num-traits = "0.2"
+lazy_static = "1.4"
+
+[features]
+default = [ "sais32", "parallel" ]
+sais16 = [ "sais-sys/sais16" ]
+sais32 = [ "sais-sys/sais32" ]
+sais64 = [ "sais-sys/sais64" ]
+parallel = [ "sais-sys/openmp" ]

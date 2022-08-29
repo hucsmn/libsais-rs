@@ -3,10 +3,6 @@
 #[cfg(all(feature = "openmp", not(target_env = "msvc")))]
 extern crate openmp_sys;
 
-pub mod errors;
-
-mod common;
-
 #[cfg(feature = "sais16")]
 pub mod sais16;
 
@@ -15,6 +11,3 @@ pub mod sais32;
 
 #[cfg(feature = "sais64")]
 pub mod sais64;
-
-#[cfg(test)]
-mod tests;

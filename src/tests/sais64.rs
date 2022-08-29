@@ -50,18 +50,18 @@ fn test_sais() {
 }
 
 #[test]
-#[cfg(feature = "openmp")]
-fn test_sais_openmp() {
+#[cfg(feature = "parallel")]
+fn test_sais_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut sa in allocate_suffix_arrays(t.len()) {
-            // openmp::sais
-            openmp::sais(t, sa.as_mut_slice(), None, 0).expect("sais failed");
+            // parallel::sais
+            parallel::sais(t, sa.as_mut_slice(), None, 0).expect("sais failed");
             check_suffix_array(t, sa.as_slice());
 
-            // openmp::sais, w/ output symbol frequency table
+            // parallel::sais, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
-            openmp::sais(t, sa.as_mut_slice(), Some(&mut freq), 0).expect("sais failed");
+            parallel::sais(t, sa.as_mut_slice(), Some(&mut freq), 0).expect("sais failed");
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
             check_suffix_array(t, sa.as_slice());
         }
@@ -92,24 +92,24 @@ fn test_bwt_unbwt() {
 }
 
 #[test]
-#[cfg(feature = "openmp")]
-fn test_bwt_unbwt_openmp() {
+#[cfg(feature = "parallel")]
+fn test_bwt_unbwt_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
             let mut u = vec![0u8; t.len()];
             let mut s = vec![0u8; t.len()];
 
-            // openmp::bwt + openmp::unbwt
-            let i = openmp::bwt(t, u.as_mut_slice(), a.as_mut_slice(), None, 0).expect("bwt failed");
-            openmp::unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), None, i, 0).expect("unbwt failed");
+            // parallel::bwt + parallel::unbwt
+            let i = parallel::bwt(t, u.as_mut_slice(), a.as_mut_slice(), None, 0).expect("bwt failed");
+            parallel::unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), None, i, 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
 
-            // openmp::bwt + openmp::unbwt, w/ output symbol frequency table
+            // parallel::bwt + parallel::unbwt, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
-            openmp::bwt(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), 0).expect("bwt failed");
+            parallel::bwt(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), 0).expect("bwt failed");
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
-            openmp::unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i, 0).expect("unbwt failed");
+            parallel::unbwt(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i, 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
     }
@@ -140,8 +140,8 @@ fn test_bwt_unbwt_aux() {
 }
 
 #[test]
-#[cfg(feature = "openmp")]
-fn test_bwt_unbwt_aux_openmp() {
+#[cfg(feature = "parallel")]
+fn test_bwt_unbwt_aux_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         for mut a in allocate_suffix_arrays(t.len()) {
@@ -149,16 +149,16 @@ fn test_bwt_unbwt_aux_openmp() {
             let mut s = vec![0u8; t.len()];
             let mut i = vec![0i64; Ord::max(t.len() / 4, 1)];
 
-            // openmp::bwt_aux + openmp::unbwt_aux
-            openmp::bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), None, i.as_mut_slice(), 0).expect("bwt failed");
-            openmp::unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), None, i.as_slice(), 0).expect("unbwt failed");
+            // parallel::bwt_aux + parallel::unbwt_aux
+            parallel::bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), None, i.as_mut_slice(), 0).expect("bwt failed");
+            parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), None, i.as_slice(), 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
 
-            // openmp::bwt_aux + openmp::unbwt_aux, w/ output symbol frequency table
+            // parallel::bwt_aux + parallel::unbwt_aux, w/ output symbol frequency table
             let mut freq = [0i64; FREQ_TABLE_SIZE];
-            openmp::bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), i.as_mut_slice(), 0).expect("bwt failed");
+            parallel::bwt_aux(t, u.as_mut_slice(), a.as_mut_slice(), Some(&mut freq), i.as_mut_slice(), 0).expect("bwt failed");
             check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
-            openmp::unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i.as_slice(), 0).expect("unbwt failed");
+            parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a.as_mut_slice(), Some(&freq), i.as_slice(), 0).expect("unbwt failed");
             assert_eq!(t, s.as_slice());
         }
     }
@@ -182,19 +182,19 @@ fn test_plcp_lcp() {
 }
 
 #[test]
-#[cfg(feature = "openmp")]
-fn test_plcp_lcp_openmp() {
+#[cfg(feature = "parallel")]
+fn test_plcp_lcp_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
         let mut sa = vec![0i64; t.len()];
         let mut plcp_array = vec![0i64; t.len()];
         let mut lcp_array = vec![0i64; t.len()];
 
-        openmp::sais(t, sa.as_mut_slice(), None, 0).expect("sais failed");
+        parallel::sais(t, sa.as_mut_slice(), None, 0).expect("sais failed");
 
-        // openmp::plcp + openmp::lcp
-        openmp::plcp(t, sa.as_slice(), plcp_array.as_mut_slice(), 0).expect("plcp failed");
-        openmp::lcp(plcp_array.as_slice(), sa.as_slice(), lcp_array.as_mut_slice(), 0).expect("lcp failed");
+        // parallel::plcp + parallel::lcp
+        parallel::plcp(t, sa.as_slice(), plcp_array.as_mut_slice(), 0).expect("plcp failed");
+        parallel::lcp(plcp_array.as_slice(), sa.as_slice(), lcp_array.as_mut_slice(), 0).expect("lcp failed");
         check_lcp_array(t, sa.as_slice(), lcp_array.as_slice());
     }
 }
