@@ -21,7 +21,7 @@ static TEXTS: Lazy<Vec<Vec<u16>>> = Lazy::new(|| {
     ];
     let mut samples: Vec<Vec<u16>> = text_samples
         .into_iter()
-        .map(|sample| sample.to_vec().into_iter().map(|ch| ch as u16).collect())
+        .map(|sample| Vec::from_iter(sample.iter().copied().map(Into::into)))
         .collect();
     samples.push(random_text(100..=200, 0..=4));
     samples.push(random_text(100..=200, 0..=16));

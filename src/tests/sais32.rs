@@ -90,6 +90,38 @@ fn test_sais_parallel() {
 }
 
 #[test]
+#[cfg(feature = "sais_int")]
+fn test_sais_int_basic() {
+    let mut texts: Vec<Vec<i32>> = TEXTS
+        .iter()
+        .map(|item| Vec::from_iter(item.iter().copied().map(Into::into)))
+        .collect();
+    for t in texts.iter_mut() {
+        for mut sa in allocate_suffix_arrays(t.len()) {
+            // sais
+            sais_int(t, sa.as_mut_slice(), 256).expect("sais failed");
+            check_suffix_array(t, sa.as_slice());
+        }
+    }
+}
+
+#[test]
+#[cfg(all(feature = "sais_int", feature = "parallel"))]
+fn test_sais_int_parallel() {
+    let mut texts: Vec<Vec<i32>> = TEXTS
+        .iter()
+        .map(|item| Vec::from_iter(item.iter().copied().map(Into::into)))
+        .collect();
+    for t in texts.iter_mut() {
+        for mut sa in allocate_suffix_arrays(t.len()) {
+            // sais
+            parallel::sais_int(t, sa.as_mut_slice(), 256, 0).expect("sais failed");
+            check_suffix_array(t, sa.as_slice());
+        }
+    }
+}
+
+#[test]
 #[cfg(feature = "bwt")]
 fn test_bwt_unbwt_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
