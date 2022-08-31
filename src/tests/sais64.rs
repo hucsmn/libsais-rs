@@ -123,21 +123,22 @@ fn test_bwt_unbwt_aux_basic() {
     for t in texts {
         let mut u = vec![0u8; t.len()];
         let mut s = vec![0u8; t.len()];
-        let mut i = vec![0i64; Ord::max(t.len() / 4, 1)];
         let mut a0 = vec![0i64; t.len()];
         let mut a1 = vec![0i64; t.len().checked_add(1).unwrap()];
 
-        // bwt_aux + unbwt_aux
-        bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), None, i.as_mut_slice()).expect("bwt failed");
-        unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), None, i.as_slice()).expect("unbwt failed");
-        assert_eq!(t, s.as_slice());
+        for mut i in allocate_aux_arrays(t.len()) {
+            // bwt_aux + unbwt_aux
+            bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), None, i.as_mut_slice()).expect("bwt failed");
+            unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), None, i.as_slice()).expect("unbwt failed");
+            assert_eq!(t, s.as_slice());
 
-        // bwt_aux + unbwt_aux, w/ output symbol frequency table
-        let mut freq = [0i64; FREQ_TABLE_SIZE];
-        bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), i.as_mut_slice()).expect("bwt failed");
-        check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
-        unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i.as_slice()).expect("unbwt failed");
-        assert_eq!(t, s.as_slice());
+            // bwt_aux + unbwt_aux, w/ output symbol frequency table
+            let mut freq = [0i64; FREQ_TABLE_SIZE];
+            bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), i.as_mut_slice()).expect("bwt failed");
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
+            unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i.as_slice()).expect("unbwt failed");
+            assert_eq!(t, s.as_slice());
+        }
     }
 }
 
@@ -148,21 +149,22 @@ fn test_bwt_unbwt_aux_parallel() {
     for t in texts {
         let mut u = vec![0u8; t.len()];
         let mut s = vec![0u8; t.len()];
-        let mut i = vec![0i64; Ord::max(t.len() / 4, 1)];
         let mut a0 = vec![0i64; t.len()];
         let mut a1 = vec![0i64; t.len().checked_add(1).unwrap()];
 
-        // parallel::bwt_aux + parallel::unbwt_aux
-        parallel::bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), None, i.as_mut_slice(), 0).expect("bwt failed");
-        parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), None, i.as_slice(), 0).expect("unbwt failed");
-        assert_eq!(t, s.as_slice());
+        for mut i in allocate_aux_arrays(t.len()) {
+            // parallel::bwt_aux + parallel::unbwt_aux
+            parallel::bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), None, i.as_mut_slice(), 0).expect("bwt failed");
+            parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), None, i.as_slice(), 0).expect("unbwt failed");
+            assert_eq!(t, s.as_slice());
 
-        // parallel::bwt_aux + parallel::unbwt_aux, w/ output symbol frequency table
-        let mut freq = [0i64; FREQ_TABLE_SIZE];
-        parallel::bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), i.as_mut_slice(), 0).expect("bwt failed");
-        check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
-        parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i.as_slice(), 0).expect("unbwt failed");
-        assert_eq!(t, s.as_slice());
+            // parallel::bwt_aux + parallel::unbwt_aux, w/ output symbol frequency table
+            let mut freq = [0i64; FREQ_TABLE_SIZE];
+            parallel::bwt_aux(t, u.as_mut_slice(), a0.as_mut_slice(), Some(&mut freq), i.as_mut_slice(), 0).expect("bwt failed");
+            check_frequency_table(t, freq.as_slice(), FREQ_TABLE_SIZE);
+            parallel::unbwt_aux(u.as_slice(), s.as_mut_slice(), a1.as_mut_slice(), Some(&freq), i.as_slice(), 0).expect("unbwt failed");
+            assert_eq!(t, s.as_slice());
+        }
     }
 }
 

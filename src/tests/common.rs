@@ -3,6 +3,8 @@
 use std::fmt::Debug;
 use std::ops::RangeInclusive;
 
+#[cfg(feature = "bwt_aux")]
+use crate::aux_index::{aux_length_exact, AUX_RATE_MIN};
 use num_traits::{one, zero};
 use num_traits::{AsPrimitive, NumAssignOps, PrimInt};
 use rand::distributions::uniform;
@@ -18,15 +20,33 @@ pub fn random_text<I: PrimInt + uniform::SampleUniform>(text_size: RangeInclusiv
 }
 
 #[inline]
-pub fn allocate_suffix_arrays<I: PrimInt>(text_len: usize) -> Vec<Vec<I>> {
+pub fn allocate_suffix_arrays<I: PrimInt>(text_size: usize) -> Vec<Vec<I>> {
     vec![
         // allocates text_len
-        vec![zero(); text_len],
+        vec![zero(); text_size],
         // allocates text_len + 256
-        vec![zero(); text_len.saturating_add(256)],
+        vec![zero(); text_size.saturating_add(256)],
         // allocates text_len * 1.125
-        vec![zero(); text_len.saturating_add((text_len as f64 * 0.125) as usize)],
+        vec![zero(); text_size.saturating_add((text_size as f64 * 0.125) as usize)],
     ]
+}
+
+#[inline]
+#[cfg(feature = "bwt_aux")]
+pub fn allocate_aux_arrays<I: PrimInt>(text_size: usize) -> Vec<Vec<I>> {
+    let max_rate = Ord::min(text_size.checked_next_power_of_two().unwrap(), AUX_RATE_MIN);
+    let mut rates: Vec<usize> = (1..)
+        .into_iter()
+        .map(|i| 1 << i)
+        .take_while(|&r| r <= max_rate)
+        .collect();
+    if rates.len() > 3 {
+        rates = vec![rates[0], rates[rates.len() / 2], rates[rates.len() - 1]];
+    }
+    rates
+        .into_iter()
+        .map(|r| vec![zero(); aux_length_exact(text_size, r).unwrap()])
+        .collect()
 }
 
 #[inline]

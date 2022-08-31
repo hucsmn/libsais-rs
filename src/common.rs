@@ -1,3 +1,5 @@
+#[cfg(feature = "bwt_aux")]
+use crate::aux_index::aux_rate_exact;
 use crate::errors::{Error, ReturnCode};
 
 #[inline]
@@ -55,29 +57,12 @@ pub fn unbwt_sufficient_size<T: TryFrom<usize>, EI: ReturnCode>(text_size: usize
 
 #[inline]
 #[cfg(feature = "bwt_aux")]
-pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_cap: usize, text_size: usize) -> Result<T, Error<EI>> {
-    if aux_cap == 0 {
-        return Err(Error::IllegalArguments);
-    }
-
-    // calculate minimum rate
-    let mut rate = if text_size % aux_cap != 0 {
-        text_size / aux_cap + 1
+pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_length: usize, text_size: usize) -> Result<T, Error<EI>> {
+    if let Some(aux_rate) = aux_rate_exact(text_size, aux_length) {
+        aux_rate.try_into().map_err(|_| Error::IllegalArguments)
     } else {
-        text_size / aux_cap
-    };
-    rate = Ord::max(rate, 2);
-
-    // try to find a minimum power of two rate value
-    if (rate & (rate - 1)) != 0 {
-        rate = rate.next_power_of_two();
-        if rate == 0 {
-            return Err(Error::IllegalArguments);
-        }
+        Err(Error::IllegalArguments)
     }
-
-    // convert usize
-    rate.try_into().map_err(|_| Error::IllegalArguments)
 }
 
 #[inline]
