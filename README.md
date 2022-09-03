@@ -9,6 +9,7 @@ status: **work in progress**
 
 todo:
 
+* [ ] high level abstractions
 * [ ] write documents
 * [x] input size limit check
 * [x] inplace bwt/unbwt
