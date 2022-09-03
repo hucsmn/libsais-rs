@@ -8,6 +8,9 @@ use std::ptr::NonNull;
 
 use crate::common::*;
 
+/// Maximum array length sais algorithms able to cope with.
+pub const MAX_LENGTH: usize = i32::MAX as usize;
+
 /// Output symbol frequency table size for u8 strings.
 pub const FREQ_TABLE_SIZE: usize = 256;
 
@@ -44,7 +47,7 @@ impl SaisContext {
         unsafe {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_mut_ptr();
-            let (n, fs) = split_size(t.len(), sa.len())?;
+            let (n, fs) = split_size(t.len(), max_size(sa.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_ctx(self.0.as_mut(), t_ptr, sa_ptr, n, fs, freq_ptr);
@@ -58,7 +61,7 @@ impl SaisContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_bwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
@@ -72,7 +75,7 @@ impl SaisContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
@@ -121,7 +124,7 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_unbwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
@@ -135,7 +138,7 @@ impl UnbwtContext {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
@@ -159,7 +162,7 @@ pub fn sais(t: &[u8], sa: &mut [i32], freq: Option<&mut [i32]>) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
         let sa_ptr = sa.as_mut_ptr();
-        let (n, fs) = split_size(t.len(), sa.len())?;
+        let (n, fs) = split_size(t.len(), max_size(sa.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais(t_ptr, sa_ptr, n, fs, freq_ptr);
@@ -172,7 +175,7 @@ pub fn sais_int(t: &mut [i32], sa: &mut [i32], k: i32) -> Result<()> {
     unsafe {
         let t_ptr = t.as_mut_ptr();
         let sa_ptr = sa.as_mut_ptr();
-        let (n, fs) = split_size(t.len(), sa.len())?;
+        let (n, fs) = split_size(t.len(), max_size(sa.len(), MAX_LENGTH)?)?;
 
         let code = libsais_int(t_ptr, sa_ptr, n, k, fs);
         interpret_return_code_32(code).map(|_| ())
@@ -185,7 +188,7 @@ pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>) -> R
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais_bwt(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
@@ -199,7 +202,7 @@ pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, 
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+        let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_mut_ptr();
@@ -215,7 +218,7 @@ pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: i32
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
         let code = libsais_unbwt(t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
@@ -229,7 +232,7 @@ pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i:
         let t_ptr = t.as_ptr();
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
-        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+        let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_ptr();
@@ -245,7 +248,7 @@ pub fn plcp(t: &[u8], sa: &[i32], plcp: &mut [i32]) -> Result<()> {
         let t_ptr = t.as_ptr();
         let sa_ptr = sa.as_ptr();
         let plcp_ptr = plcp.as_mut_ptr();
-        let (n, _) = split_size(same_size(t.len(), plcp.len())?, sa.len())?;
+        let (n, _) = split_size(same_size(t.len(), plcp.len())?, max_size(sa.len(), MAX_LENGTH)?)?;
 
         let code = libsais_plcp(t_ptr, sa_ptr, plcp_ptr, n);
         interpret_return_code_32(code).map(|_| ())
@@ -258,7 +261,7 @@ pub fn lcp(plcp: &[i32], sa: &[i32], lcp: &mut [i32]) -> Result<()> {
         let plcp_ptr = plcp.as_ptr();
         let sa_ptr = sa.as_ptr();
         let lcp_ptr = lcp.as_mut_ptr();
-        let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, sa.len())?;
+        let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, max_size(sa.len(), MAX_LENGTH)?)?;
 
         let code = libsais_lcp(plcp_ptr, sa_ptr, lcp_ptr, n);
         interpret_return_code_32(code).map(|_| ())
@@ -275,7 +278,7 @@ pub mod parallel {
         unsafe {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_mut_ptr();
-            let (n, fs) = split_size(t.len(), sa.len())?;
+            let (n, fs) = split_size(t.len(), max_size(sa.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_omp(t_ptr, sa_ptr, n, fs, freq_ptr, threads);
@@ -288,7 +291,7 @@ pub mod parallel {
         unsafe {
             let t_ptr = t.as_mut_ptr();
             let sa_ptr = sa.as_mut_ptr();
-            let (n, fs) = split_size(t.len(), sa.len())?;
+            let (n, fs) = split_size(t.len(), max_size(sa.len(), MAX_LENGTH)?)?;
 
             let code = libsais_int_omp(t_ptr, sa_ptr, n, k, fs, threads);
             interpret_return_code_32(code).map(|_| ())
@@ -301,7 +304,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_bwt_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, threads);
@@ -315,7 +318,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let (n, fs) = split_size(same_size(t.len(), u.len())?, a.len())?;
+            let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
@@ -331,7 +334,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
 
             let code = libsais_unbwt_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, i, threads);
@@ -345,7 +348,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
-            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, a.len())?;
+            let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
@@ -361,7 +364,7 @@ pub mod parallel {
             let t_ptr = t.as_ptr();
             let sa_ptr = sa.as_ptr();
             let plcp_ptr = plcp.as_mut_ptr();
-            let (n, _) = split_size(same_size(t.len(), plcp.len())?, sa.len())?;
+            let (n, _) = split_size(same_size(t.len(), plcp.len())?, max_size(sa.len(), MAX_LENGTH)?)?;
 
             let code = libsais_plcp_omp(t_ptr, sa_ptr, plcp_ptr, n, threads);
             interpret_return_code_32(code).map(|_| ())
@@ -374,7 +377,7 @@ pub mod parallel {
             let plcp_ptr = plcp.as_ptr();
             let sa_ptr = sa.as_ptr();
             let lcp_ptr = lcp.as_mut_ptr();
-            let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, sa.len())?;
+            let (n, _) = split_size(same_size(plcp.len(), lcp.len())?, max_size(sa.len(), MAX_LENGTH)?)?;
 
             let code = libsais_lcp_omp(plcp_ptr, sa_ptr, lcp_ptr, n, threads);
             interpret_return_code_32(code).map(|_| ())

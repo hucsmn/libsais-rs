@@ -29,10 +29,19 @@ pub unsafe fn freq_as_ptr<T, EI: ReturnCode>(freq: Option<&[T]>, size: usize) ->
 
 #[inline]
 pub fn same_size<T: Copy + Eq, EI: ReturnCode>(one_size: T, another_size: T) -> Result<T, Error<EI>> {
-    if one_size != another_size {
-        Err(Error::IllegalArguments)
-    } else {
+    if one_size == another_size {
         Ok(one_size)
+    } else {
+        Err(Error::IllegalArguments)
+    }
+}
+
+#[inline]
+pub fn max_size<T: Copy + Ord, EI: ReturnCode>(size: T, max: T) -> Result<T, Error<EI>> {
+    if size <= max {
+        Ok(size)
+    } else {
+        Err(Error::IllegalArguments)
     }
 }
 
