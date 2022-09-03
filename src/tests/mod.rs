@@ -1,5 +1,8 @@
 mod common;
 
+#[cfg(feature = "bwt_aux")]
+mod aux_index;
+
 #[cfg(feature = "sais16")]
 mod sais16;
 
