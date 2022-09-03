@@ -69,6 +69,20 @@ impl SaisContext {
         }
     }
 
+    #[cfg(feature = "bwt")]
+    pub fn bwt_inplace(&mut self, t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+
+            let code = libsais_bwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
+            interpret_return_code_32(code)
+        }
+    }
+
     #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
         unsafe {
@@ -76,6 +90,22 @@ impl SaisContext {
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+            let r = aux_rate(i.len(), t.len())?;
+            let i_ptr = i.as_mut_ptr();
+
+            let code = libsais_bwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
+    #[cfg(feature = "bwt_aux")]
+    pub fn bwt_aux_inplace(&mut self, t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
@@ -132,6 +162,20 @@ impl UnbwtContext {
         }
     }
 
+    #[cfg(feature = "bwt")]
+    pub fn unbwt_inplace(&mut self, t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+
+            let code = libsais_unbwt_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
     #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux(&mut self, t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
         unsafe {
@@ -139,6 +183,22 @@ impl UnbwtContext {
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+            let r = aux_rate(i.len(), t.len())?;
+            let i_ptr = i.as_ptr();
+
+            let code = libsais_unbwt_aux_ctx(self.0.as_mut(), t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
+    #[cfg(feature = "bwt_aux")]
+    pub fn unbwt_aux_inplace(&mut self, t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
@@ -196,6 +256,20 @@ pub fn bwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>) -> R
     }
 }
 
+#[cfg(feature = "bwt")]
+pub fn bwt_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
+    unsafe {
+        let t_ptr = t.as_ptr();
+        let u_ptr = t.as_mut_ptr();
+        let a_ptr = a.as_mut_ptr();
+        let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+        let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+
+        let code = libsais_bwt(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr);
+        interpret_return_code_32(code)
+    }
+}
+
 #[cfg(feature = "bwt_aux")]
 pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
     unsafe {
@@ -203,6 +277,22 @@ pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, 
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
         let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+        let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+        let r = aux_rate(i.len(), t.len())?;
+        let i_ptr = i.as_mut_ptr();
+
+        let code = libsais_bwt_aux(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr);
+        interpret_return_code_32(code).map(|_| ())
+    }
+}
+
+#[cfg(feature = "bwt_aux")]
+pub fn bwt_aux_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
+    unsafe {
+        let t_ptr = t.as_ptr();
+        let u_ptr = t.as_mut_ptr();
+        let a_ptr = a.as_mut_ptr();
+        let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_mut_ptr();
@@ -226,6 +316,20 @@ pub fn unbwt(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: i32
     }
 }
 
+#[cfg(feature = "bwt")]
+pub fn unbwt_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
+    unsafe {
+        let t_ptr = t.as_ptr();
+        let u_ptr = t.as_mut_ptr();
+        let a_ptr = a.as_mut_ptr();
+        let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+        let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+
+        let code = libsais_unbwt(t_ptr, u_ptr, a_ptr, n, freq_ptr, i);
+        interpret_return_code_32(code).map(|_| ())
+    }
+}
+
 #[cfg(feature = "bwt_aux")]
 pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
     unsafe {
@@ -233,6 +337,22 @@ pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i:
         let u_ptr = u.as_mut_ptr();
         let a_ptr = a.as_mut_ptr();
         let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+        let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+        let r = aux_rate(i.len(), t.len())?;
+        let i_ptr = i.as_ptr();
+
+        let code = libsais_unbwt_aux(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr);
+        interpret_return_code_32(code).map(|_| ())
+    }
+}
+
+#[cfg(feature = "bwt_aux")]
+pub fn unbwt_aux_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
+    unsafe {
+        let t_ptr = t.as_ptr();
+        let u_ptr = t.as_mut_ptr();
+        let a_ptr = a.as_mut_ptr();
+        let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
         let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
         let r = aux_rate(i.len(), t.len())?;
         let i_ptr = i.as_ptr();
@@ -312,6 +432,20 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt")]
+    pub fn bwt_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, threads: i32) -> Result<i32> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+
+            let code = libsais_bwt_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, threads);
+            interpret_return_code_32(code)
+        }
+    }
+
     #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
@@ -319,6 +453,22 @@ pub mod parallel {
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let (n, fs) = split_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
+            let r = aux_rate(i.len(), t.len())?;
+            let i_ptr = i.as_mut_ptr();
+
+            let code = libsais_bwt_aux_omp(t_ptr, u_ptr, a_ptr, n, fs, freq_ptr, r, i_ptr, threads);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
+    #[cfg(feature = "bwt_aux")]
+    pub fn bwt_aux_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32], threads: i32) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let (n, fs) = split_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_mut_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_mut_ptr();
@@ -342,6 +492,20 @@ pub mod parallel {
         }
     }
 
+    #[cfg(feature = "bwt")]
+    pub fn unbwt_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: i32, threads: i32) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+
+            let code = libsais_unbwt_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, i, threads);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
     #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux(t: &[u8], u: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32], threads: i32) -> Result<()> {
         unsafe {
@@ -349,6 +513,22 @@ pub mod parallel {
             let u_ptr = u.as_mut_ptr();
             let a_ptr = a.as_mut_ptr();
             let n = unbwt_sufficient_size(same_size(t.len(), u.len())?, max_size(a.len(), MAX_LENGTH)?)?;
+            let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
+            let r = aux_rate(i.len(), t.len())?;
+            let i_ptr = i.as_ptr();
+
+            let code = libsais_unbwt_aux_omp(t_ptr, u_ptr, a_ptr, n, freq_ptr, r, i_ptr, threads);
+            interpret_return_code_32(code).map(|_| ())
+        }
+    }
+
+    #[cfg(feature = "bwt_aux")]
+    pub fn unbwt_aux_inplace(t: &mut [u8], a: &mut [i32], freq: Option<&[i32]>, i: &[i32], threads: i32) -> Result<()> {
+        unsafe {
+            let t_ptr = t.as_ptr();
+            let u_ptr = t.as_mut_ptr();
+            let a_ptr = a.as_mut_ptr();
+            let n = unbwt_sufficient_size(t.len(), max_size(a.len(), MAX_LENGTH)?)?;
             let freq_ptr = freq_as_ptr(freq, FREQ_TABLE_SIZE)?;
             let r = aux_rate(i.len(), t.len())?;
             let i_ptr = i.as_ptr();
