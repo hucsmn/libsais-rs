@@ -44,7 +44,7 @@ fn main() {
     }
 }
 
-fn run(filename: &str, round: usize, parallel: bool, free_space: usize, enable_lcp: bool) -> io::Result<()> {
+fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, enable_lcp: bool) -> io::Result<()> {
     println!("*** run 32-bit sais on sample file {:?} ***", filename);
 
     println!("> load file...");
@@ -70,7 +70,7 @@ fn run(filename: &str, round: usize, parallel: bool, free_space: usize, enable_l
     }
 
     println!("> allocate sais context...");
-    let mut context = (if parallel {
+    let mut context = (if enable_parallel {
         println!("  multiple threaded context (openmp default thread count)");
         SaisContext::new_parallel(0)
     } else {
@@ -91,12 +91,22 @@ fn run(filename: &str, round: usize, parallel: bool, free_space: usize, enable_l
 
         if enable_lcp {
             let plcp_start = Instant::now();
-            plcp(&text[..], &suffix_array[..size], &mut plcp_array[..]).map_err(|err| error(format!("plcp error: {:?}", err)))?;
+            (if enable_parallel {
+                parallel::plcp(&text[..], &suffix_array[..size], &mut plcp_array[..], 0)
+            } else {
+                plcp(&text[..], &suffix_array[..size], &mut plcp_array[..])
+            })
+            .map_err(|err| error(format!("plcp error: {:?}", err)))?;
             let plcp_elapsed = plcp_start.elapsed();
             println!("  plcp array computed in {:.3}s", plcp_elapsed.as_secs_f64());
 
             let lcp_start = Instant::now();
-            lcp(&plcp_array[..], &suffix_array[..size], &mut lcp_array[..]).map_err(|err| error(format!("lcp error: {:?}", err)))?;
+            (if enable_parallel {
+                parallel::lcp(&plcp_array[..], &suffix_array[..size], &mut lcp_array[..], 0)
+            } else {
+                lcp(&plcp_array[..], &suffix_array[..size], &mut lcp_array[..])
+            })
+            .map_err(|err| error(format!("lcp error: {:?}", err)))?;
             let lcp_elapsed = lcp_start.elapsed();
             println!("  lcp array computed in {:.3}s", lcp_elapsed.as_secs_f64());
 

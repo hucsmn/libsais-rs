@@ -39,7 +39,7 @@ fn main() {
     }
 }
 
-fn run(filename: &str, round: usize, parallel: bool, free_space: usize) -> io::Result<()> {
+fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize) -> io::Result<()> {
     println!("*** run 32-bit bwt/unbwt on sample file {:?} ***", filename);
 
     println!("> load file...");
@@ -64,7 +64,7 @@ fn run(filename: &str, round: usize, parallel: bool, free_space: usize) -> io::R
     }
 
     println!("> allocate bwt context and unbwt context...");
-    let (mut bwt_context, mut unbwt_context) = (if parallel {
+    let (mut bwt_context, mut unbwt_context) = (if enable_parallel {
         println!("  multiple threaded context (openmp default thread count)");
         Option::zip(SaisContext::new_parallel(0), UnbwtContext::new_parallel(0))
     } else {
