@@ -8,6 +8,7 @@ const ROUND: usize = 3;
 const PARALLEL: bool = false;
 const FREE_SPACE: usize = 6 * 1024;
 const LCP: bool = false;
+const VALIDATE: bool = false;
 
 /// Run 32-bit sais (optionally with plcp/lcp) on samples
 #[derive(Parser, Debug)]
@@ -25,9 +26,13 @@ struct Cmdline {
     #[clap(short, long, value_parser, default_value_t = FREE_SPACE)]
     pub free_space: usize,
 
-    /// Whether to compute plcp and lcp
+    /// Whether to compute plcp array and lcp array
     #[clap(short, long, value_parser, default_value_t = LCP)]
     pub lcp: bool,
+
+    /// Whether to validate suffix array and lcp array
+    #[clap(short, long, value_parser, default_value_t = VALIDATE)]
+    pub validate: bool,
 
     /// Sample files to run
     #[clap(value_parser, value_name = "SAMPLE")]
@@ -37,14 +42,14 @@ struct Cmdline {
 fn main() {
     let cmdline = Cmdline::parse();
     for sample in cmdline.samples.iter() {
-        if let Err(err) = run(sample.as_str(), cmdline.round, cmdline.parallel, cmdline.free_space, cmdline.lcp) {
+        if let Err(err) = run(sample.as_str(), cmdline.round, cmdline.parallel, cmdline.free_space, cmdline.lcp, cmdline.validate) {
             eprintln!("error: {:?}", err);
             println!();
         }
     }
 }
 
-fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, enable_lcp: bool) -> io::Result<()> {
+fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, enable_lcp: bool, enable_validate: bool) -> io::Result<()> {
     println!("*** run 32-bit sais on sample file {:?} ***", filename);
 
     println!("> load file...");
@@ -80,7 +85,7 @@ fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, e
     .ok_or_else(|| error("unable to allocate sais context"))?;
 
     for number in 1..=round {
-        println!("> compute suffix array, round {}...", number);
+        println!("> compute suffix array (optionally with plcp/lcp), round {}...", number);
 
         let sais_start = Instant::now();
         context
@@ -88,6 +93,15 @@ fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, e
             .map_err(|err| error(format!("sais error: {:?}", err)))?;
         let sais_elapsed = sais_start.elapsed();
         println!("  suffix array computed in {:.3}s", sais_elapsed.as_secs_f64());
+
+        if enable_validate {
+            println!("    validating suffix array...");
+            let suffix_array_ok = validate_suffix_array(&text[..], &suffix_array[..]);
+            println!("    suffix array validation: {}", if suffix_array_ok { "ok" } else { "failed" });
+            if !suffix_array_ok {
+                Err(error("suffix array validation failed"))?;
+            }
+        }
 
         if enable_lcp {
             let plcp_start = Instant::now();
@@ -110,12 +124,52 @@ fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, e
             let lcp_elapsed = lcp_start.elapsed();
             println!("  lcp array computed in {:.3}s", lcp_elapsed.as_secs_f64());
 
+            if enable_validate {
+                println!("    validating lcp array...");
+                let lcp_array_ok = validate_lcp_array(&text[..], &suffix_array[..], &lcp_array[..]);
+                println!("    lcp array validation: {}", if lcp_array_ok { "ok" } else { "failed" });
+                if !lcp_array_ok {
+                    Err(error("lcp array validation failed"))?;
+                }
+            }
+
             println!("  total {:.3}s", (sais_elapsed + plcp_elapsed + lcp_elapsed).as_secs_f64());
         }
     }
 
     println!();
     Ok(())
+}
+
+fn validate_suffix_array(text: &[u8], suffix_array: &[i32]) -> bool {
+    if text.len() > 0 {
+        if suffix_array.len() < text.len() {
+            return false;
+        }
+        for i in 0..text.len() - 1 {
+            if text[suffix_array[i] as usize..] >= text[suffix_array[i + 1] as usize..] {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+fn validate_lcp_array(text: &[u8], suffix_array: &[i32], lcp_array: &[i32]) -> bool {
+    if text.len() > 0 {
+        if (suffix_array.len() < text.len()) || (lcp_array.len() < text.len()) || lcp_array[0] != 0 {
+            return false;
+        }
+        for i in 1..text.len() {
+            let common = Iterator::zip(text[suffix_array[i - 1] as usize..].iter(), text[suffix_array[i] as usize..].iter())
+                .take_while(|(&x, &y)| x == y)
+                .count();
+            if lcp_array[i] != (common as i32) {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 fn error<S: Into<String>>(message: S) -> io::Error {

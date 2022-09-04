@@ -7,6 +7,7 @@ use clap::Parser;
 const ROUND: usize = 3;
 const PARALLEL: bool = false;
 const FREE_SPACE: usize = 6 * 1024;
+const VALIDATE: bool = false;
 
 /// Run 32-bit bwt/unbwt on samples
 #[derive(Parser, Debug)]
@@ -24,6 +25,10 @@ struct Cmdline {
     #[clap(short, long, value_parser, default_value_t = FREE_SPACE)]
     pub free_space: usize,
 
+    /// Whether to validate result
+    #[clap(short, long, value_parser, default_value_t = VALIDATE)]
+    pub validate: bool,
+
     /// Sample files to run
     #[clap(value_parser, value_name = "SAMPLE")]
     pub samples: Vec<String>,
@@ -32,14 +37,14 @@ struct Cmdline {
 fn main() {
     let cmdline = Cmdline::parse();
     for sample in cmdline.samples.iter() {
-        if let Err(err) = run(sample.as_str(), cmdline.round, cmdline.parallel, cmdline.free_space) {
+        if let Err(err) = run(sample.as_str(), cmdline.round, cmdline.parallel, cmdline.free_space, cmdline.validate) {
             eprintln!("error: {:?}", err);
             println!();
         }
     }
 }
 
-fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize) -> io::Result<()> {
+fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize, enable_validate: bool) -> io::Result<()> {
     println!("*** run 32-bit bwt/unbwt on sample file {:?} ***", filename);
 
     println!("> load file...");
@@ -89,6 +94,15 @@ fn run(filename: &str, round: usize, enable_parallel: bool, free_space: usize) -
             .map_err(|err| error(format!("unbwt error: {:?}", err)))?;
         let elapsed_unbwt = start_unbwt.elapsed();
         println!("  unbwt computed in {:.3}s", elapsed_unbwt.as_secs_f64());
+
+        if enable_validate {
+            println!("    validating bwt/unbwt...");
+            let bwt_unbwt_ok = text == unbwt_text;
+            println!("    validate bwt/unbwt: {}", if bwt_unbwt_ok { "ok" } else { "failed" });
+            if !bwt_unbwt_ok {
+                Err(error("bwt/unbwt validation failed"))?;
+            }
+        }
     }
 
     println!();
