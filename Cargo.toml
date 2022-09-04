@@ -14,17 +14,27 @@ rand = "0.8"
 num-traits = "0.2"
 once_cell = "1.13"
 
-[features]
-default = [ "sais32", "parallel" ]
+[dev-dependencies.clap]
+version = "3.2"
+features = [ "derive" ]
 
+[features]
+default = [ "sais32", "extra", "context", "parallel" ]
+context = []
+parallel = [ "sais-sys/openmp" ]
+extra = [ "bwt", "bwt_aux", "lcp", "sais_int" ]
+bwt = []
+bwt_aux = []
+lcp = []
+sais_int = []
 sais16 = [ "sais-sys/sais16" ]
 sais32 = [ "sais-sys/sais32" ]
 sais64 = [ "sais-sys/sais64" ]
 
-parallel = [ "sais-sys/openmp" ]
-context = []
+[[example]]
+name = "sais32"
+required-features = [ "default" ]
 
-sais_int = []
-bwt = []
-bwt_aux = []
-lcp = []
+[[example]]
+name = "bwt32"
+required-features = [ "default" ]
