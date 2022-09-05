@@ -5,8 +5,10 @@ use std::fmt::{Debug, Display, Formatter};
 /// Raw return code types from libsais.
 pub trait ReturnCode: Copy + Eq + Debug + Display {}
 
+#[cfg(any(feature = "sais16", feature = "sais32"))]
 impl ReturnCode for i32 {}
 
+#[cfg(feature = "sais64")]
 impl ReturnCode for i64 {}
 
 /// Interpreted error code from libsais.

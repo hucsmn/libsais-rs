@@ -1,9 +1,7 @@
-#[cfg(feature = "context")]
 use libc::c_void;
 
 use sais_sys::sais16::*;
 
-#[cfg(feature = "context")]
 use std::ptr::NonNull;
 
 use crate::common::*;
@@ -21,10 +19,8 @@ pub type Error = crate::errors::Error<i32>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Reusable sais/bwt computation context of 32-bit sais algorithms specialized for u16 strings.
-#[cfg(feature = "context")]
 pub struct SaisContext(NonNull<c_void>);
 
-#[cfg(feature = "context")]
 impl SaisContext {
     /// Create new single-threaded sais/bwt computation context.
     pub fn new() -> Option<Self> {
@@ -55,7 +51,6 @@ impl SaisContext {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn bwt(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -69,7 +64,6 @@ impl SaisContext {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn bwt_inplace(&mut self, t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -83,7 +77,6 @@ impl SaisContext {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -99,7 +92,6 @@ impl SaisContext {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux_inplace(&mut self, t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -116,7 +108,6 @@ impl SaisContext {
     }
 }
 
-#[cfg(feature = "context")]
 impl Drop for SaisContext {
     fn drop(&mut self) {
         unsafe {
@@ -126,10 +117,8 @@ impl Drop for SaisContext {
 }
 
 /// Reusable unbwt computation context of 32-bit sais algorithms specialized for u16 strings.
-#[cfg(all(feature = "context", any(feature = "bwt", feature = "bwt_aux")))]
 pub struct UnbwtContext(NonNull<c_void>);
 
-#[cfg(all(feature = "context", any(feature = "bwt", feature = "bwt_aux")))]
 impl UnbwtContext {
     /// Create new single-threaded unbwt computation context.
     pub fn new() -> Option<Self> {
@@ -148,7 +137,6 @@ impl UnbwtContext {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn unbwt(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -162,7 +150,6 @@ impl UnbwtContext {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn unbwt_inplace(&mut self, t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -176,7 +163,6 @@ impl UnbwtContext {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux(&mut self, t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -192,7 +178,6 @@ impl UnbwtContext {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux_inplace(&mut self, t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -209,7 +194,6 @@ impl UnbwtContext {
     }
 }
 
-#[cfg(all(feature = "context", any(feature = "bwt", feature = "bwt_aux")))]
 impl Drop for UnbwtContext {
     fn drop(&mut self) {
         unsafe {
@@ -230,7 +214,6 @@ pub fn sais(t: &[u16], sa: &mut [i32], freq: Option<&mut [i32]>) -> Result<()> {
     }
 }
 
-#[cfg(feature = "bwt")]
 pub fn bwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -244,7 +227,6 @@ pub fn bwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) ->
     }
 }
 
-#[cfg(feature = "bwt")]
 pub fn bwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) -> Result<i32> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -258,7 +240,6 @@ pub fn bwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>) -> Re
     }
 }
 
-#[cfg(feature = "bwt_aux")]
 pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -274,7 +255,6 @@ pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>
     }
 }
 
-#[cfg(feature = "bwt_aux")]
 pub fn bwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -290,7 +270,6 @@ pub fn bwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i
     }
 }
 
-#[cfg(feature = "bwt")]
 pub fn unbwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -304,7 +283,6 @@ pub fn unbwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i
     }
 }
 
-#[cfg(feature = "bwt")]
 pub fn unbwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -318,7 +296,6 @@ pub fn unbwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32)
     }
 }
 
-#[cfg(feature = "bwt_aux")]
 pub fn unbwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -334,7 +311,6 @@ pub fn unbwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, 
     }
 }
 
-#[cfg(feature = "bwt_aux")]
 pub fn unbwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -350,7 +326,6 @@ pub fn unbwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: 
     }
 }
 
-#[cfg(feature = "lcp")]
 pub fn plcp(t: &[u16], sa: &[i32], plcp: &mut [i32]) -> Result<()> {
     unsafe {
         let t_ptr = t.as_ptr();
@@ -363,7 +338,6 @@ pub fn plcp(t: &[u16], sa: &[i32], plcp: &mut [i32]) -> Result<()> {
     }
 }
 
-#[cfg(feature = "lcp")]
 pub fn lcp(plcp: &[i32], sa: &[i32], lcp: &mut [i32]) -> Result<()> {
     unsafe {
         let plcp_ptr = plcp.as_ptr();
@@ -394,7 +368,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn bwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, threads: i32) -> Result<i32> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -408,7 +381,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn bwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, threads: i32) -> Result<i32> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -422,7 +394,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -438,7 +409,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn bwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&mut [i32]>, i: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -454,7 +424,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn unbwt(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32, threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -468,7 +437,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt")]
     pub fn unbwt_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: i32, threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -482,7 +450,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux(t: &[u16], u: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -498,7 +465,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "bwt_aux")]
     pub fn unbwt_aux_inplace(t: &mut [u16], a: &mut [i32], freq: Option<&[i32]>, i: &[i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -514,7 +480,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "lcp")]
     pub fn plcp(t: &[u16], sa: &[i32], plcp: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
             let t_ptr = t.as_ptr();
@@ -527,7 +492,6 @@ pub mod parallel {
         }
     }
 
-    #[cfg(feature = "lcp")]
     pub fn lcp(plcp: &[i32], sa: &[i32], lcp: &mut [i32], threads: i32) -> Result<()> {
         unsafe {
             let plcp_ptr = plcp.as_ptr();

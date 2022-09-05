@@ -3,7 +3,6 @@
 use std::fmt::Debug;
 use std::ops::RangeInclusive;
 
-#[cfg(feature = "bwt_aux")]
 use crate::aux_index::{aux_length_exact, AUX_RATE_MIN};
 use num_traits::{one, zero};
 use num_traits::{AsPrimitive, NumAssignOps, PrimInt};
@@ -32,7 +31,6 @@ pub fn allocate_suffix_arrays<I: PrimInt>(text_size: usize) -> Vec<Vec<I>> {
 }
 
 #[inline]
-#[cfg(feature = "bwt_aux")]
 pub fn allocate_aux_arrays<I: PrimInt>(text_size: usize) -> Vec<Vec<I>> {
     let max_rate = Ord::min(text_size.checked_next_power_of_two().unwrap(), AUX_RATE_MIN);
     let mut rates: Vec<usize> = (1..)

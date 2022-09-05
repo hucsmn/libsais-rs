@@ -1,4 +1,3 @@
-#[cfg(feature = "bwt_aux")]
 use crate::aux_index::aux_rate_exact;
 use crate::errors::{Error, ReturnCode};
 
@@ -15,7 +14,6 @@ pub unsafe fn freq_as_mut_ptr<T, EI: ReturnCode>(freq: Option<&mut [T]>, size: u
 }
 
 #[inline]
-#[cfg(any(feature = "bwt", feature = "bwt_aux"))]
 pub unsafe fn freq_as_ptr<T, EI: ReturnCode>(freq: Option<&[T]>, size: usize) -> Result<*const T, Error<EI>> {
     use std::ptr::null;
 
@@ -56,7 +54,6 @@ pub fn split_size<T: TryFrom<usize>, EI: ReturnCode>(small_size: usize, big_size
 }
 
 #[inline]
-#[cfg(any(feature = "bwt", feature = "bwt_aux"))]
 pub fn unbwt_sufficient_size<T: TryFrom<usize>, EI: ReturnCode>(text_size: usize, tmp_size: usize) -> Result<T, Error<EI>> {
     if tmp_size <= text_size {
         Err(Error::IllegalArguments)?
@@ -65,7 +62,6 @@ pub fn unbwt_sufficient_size<T: TryFrom<usize>, EI: ReturnCode>(text_size: usize
 }
 
 #[inline]
-#[cfg(feature = "bwt_aux")]
 pub fn aux_rate<T: TryFrom<usize>, EI: ReturnCode>(aux_length: usize, text_size: usize) -> Result<T, Error<EI>> {
     if let Some(aux_rate) = aux_rate_exact(text_size, aux_length) {
         aux_rate.try_into().map_err(|_| Error::IllegalArguments)

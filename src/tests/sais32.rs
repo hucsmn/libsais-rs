@@ -50,7 +50,6 @@ fn test_sais_basic() {
 }
 
 #[test]
-#[cfg(feature = "context")]
 fn test_sais_context() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -90,7 +89,6 @@ fn test_sais_parallel() {
 }
 
 #[test]
-#[cfg(feature = "sais_int")]
 fn test_sais_int_basic() {
     let mut texts: Vec<Vec<i32>> = TEXTS
         .iter()
@@ -106,7 +104,7 @@ fn test_sais_int_basic() {
 }
 
 #[test]
-#[cfg(all(feature = "sais_int", feature = "parallel"))]
+#[cfg(feature = "parallel")]
 fn test_sais_int_parallel() {
     let mut texts: Vec<Vec<i32>> = TEXTS
         .iter()
@@ -122,7 +120,6 @@ fn test_sais_int_parallel() {
 }
 
 #[test]
-#[cfg(feature = "bwt")]
 fn test_bwt_unbwt_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -160,7 +157,6 @@ fn test_bwt_unbwt_basic() {
 }
 
 #[test]
-#[cfg(all(feature = "bwt", feature = "context"))]
 fn test_bwt_unbwt_context() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -216,7 +212,7 @@ fn test_bwt_unbwt_context() {
 }
 
 #[test]
-#[cfg(all(feature = "bwt", feature = "parallel"))]
+#[cfg(feature = "parallel")]
 fn test_bwt_unbwt_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -254,7 +250,6 @@ fn test_bwt_unbwt_parallel() {
 }
 
 #[test]
-#[cfg(feature = "bwt_aux")]
 fn test_bwt_unbwt_aux_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -294,7 +289,6 @@ fn test_bwt_unbwt_aux_basic() {
 }
 
 #[test]
-#[cfg(all(feature = "bwt_aux", feature = "context"))]
 fn test_bwt_unbwt_aux_context() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -352,7 +346,7 @@ fn test_bwt_unbwt_aux_context() {
 }
 
 #[test]
-#[cfg(all(feature = "bwt_aux", feature = "parallel"))]
+#[cfg(feature = "parallel")]
 fn test_bwt_unbwt_aux_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -392,7 +386,6 @@ fn test_bwt_unbwt_aux_parallel() {
 }
 
 #[test]
-#[cfg(feature = "lcp")]
 fn test_plcp_lcp_basic() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {
@@ -410,7 +403,7 @@ fn test_plcp_lcp_basic() {
 }
 
 #[test]
-#[cfg(all(feature = "lcp", feature = "parallel"))]
+#[cfg(feature = "parallel")]
 fn test_plcp_lcp_parallel() {
     let texts: Vec<&[u8]> = TEXTS.iter().map(|item| item.as_slice()).collect();
     for t in texts {

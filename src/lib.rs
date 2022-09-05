@@ -2,7 +2,6 @@ pub mod errors;
 
 mod common;
 
-#[cfg(feature = "bwt_aux")]
 pub mod aux_index;
 
 #[cfg(feature = "sais16")]
