@@ -7,7 +7,7 @@ description = "rust bindings to libsais"
 
 [dependencies]
 libc = "0.2"
-sais-sys = { version = "0.1.0", path = "./sais-sys" }
+sais-sys = { version = "0.1.0", path = "./sais-sys", default-features = false }
 
 [dev-dependencies]
 rand = "0.8"

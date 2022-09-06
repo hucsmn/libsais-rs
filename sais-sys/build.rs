@@ -1,4 +1,5 @@
 use cc::Build;
+use target_tuples::{Architecture, OS, Target};
 
 fn main() {
     Build::new()
@@ -20,19 +21,30 @@ trait BuildExtend {
     fn setup_openmp(&mut self) -> &mut Self;
     fn setup_sources(&mut self) -> &mut Self;
     fn tool_type(&self) -> ToolType;
+    fn target_arch(&self) -> Architecture;
+    fn target_os(&self) -> OS;
 }
 
 impl BuildExtend for Build {
     fn setup_compiler(&mut self) -> &mut Self {
-        if !is_debug() {
-            match self.tool_type() {
-                ToolType::ClangLike => self.opt_level_str("fast"),
-                ToolType::GnuLike => self.opt_level(2),
-                ToolType::MsvcLike => self.opt_level(2),
-                _ => panic!("failed to configure compiler"),
-            };
-            self.define("NDEBUG", None);
+        if is_debug() {
+            return self;
         }
+
+        match self.tool_type() {
+            ToolType::ClangLike => self.opt_level_str("fast"),
+            ToolType::GnuLike => self.opt_level(2),
+            ToolType::MsvcLike => self.opt_level(2),
+            _ => panic!("failed to configure compiler"),
+        };
+
+        match (self.target_arch(), self.tool_type()) {
+            (Architecture::X86_64, ToolType::ClangLike | ToolType::GnuLike) => self.flag("-march=skylake"),
+            (Architecture::X86_64, ToolType::MsvcLike) => self.flag("/arch:AVX2"),
+            _ => self,
+        };
+
+        self.define("NDEBUG", None);
         self
     }
 
@@ -46,7 +58,7 @@ impl BuildExtend for Build {
             }
             ToolType::GnuLike => {
                 self.flag("-fopenmp");
-                if cfg!(windows) {
+                if self.target_os() == OS::Win32 {
                     // openmp-sys reports missing gomp.dll on *-pc-windows-gnu/mingw-w64, workaround for this case
                     println!("cargo:rustc-link-arg=-l:libgomp.dll.a");
                 }
@@ -91,9 +103,27 @@ impl BuildExtend for Build {
             ToolType::Other
         }
     }
+
+    fn target_arch(&self) -> Architecture {
+        environ("TARGET")
+            .parse::<Target>()
+            .map(|target| target.arch())
+            .unwrap_or_else(|_| Architecture::Unknown)
+    }
+
+    fn target_os(&self) -> OS {
+        environ("TARGET")
+            .parse::<Target>()
+            .ok()
+            .and_then(|target| target.operating_system())
+            .unwrap_or_else(|| OS::Unknown)
+    }
 }
 
 fn is_debug() -> bool {
-    let profile = std::env::var("PROFILE").unwrap_or_default();
-    profile == "debug"
+    environ("PROFILE") == "debug"
+}
+
+fn environ(name: &str) -> String {
+    std::env::var(name).unwrap_or_default()
 }
